@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Service.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace Service.Interfaces
 {
-    public interface IGenimiService
+    public interface IAuthService
     {
-        Task<string?> GetPrompt(string textPrompt);
+        Task<bool> Login(LoginDTO login);
     }
 }

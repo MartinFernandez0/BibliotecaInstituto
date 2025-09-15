@@ -18,7 +18,7 @@ namespace Service.Models
         [Column(TypeName = "Text")]
         public string Sinopsis { get; set; } = string.Empty;
         public int AnioPublicacion { get; set; }
-        public string Portada { get; set; }
+        public string Portada { get; set; } = string.Empty;
         public bool IsDeleted { get; set; } = false;
         public override string ToString()
         {
