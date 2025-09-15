@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Backend.Migrations
 {
-    [DbContext(typeof(BibliotecaContext))]
+    [DbContext(typeof(BiblioContext))]
     [Migration("20250829010659_SubidaDB-Instituto")]
     partial class SubidaDBInstituto
     {

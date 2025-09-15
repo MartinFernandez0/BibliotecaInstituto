@@ -1,67 +1,61 @@
-﻿using System;
+using Backend.DataContext;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Service.ExtensionMethod;
+using Service.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Backend.DataContext;
-using Service.Models;
-using Service.ExtensionMethod;
 
 namespace Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class EjemplaresController : ControllerBase
     {
-        private readonly BibliotecaContext _context;
+        private readonly BiblioContext _context;
 
-        public EjemplaresController(BibliotecaContext context)
+        public EjemplaresController(BiblioContext context)
         {
             _context = context;
         }
 
-        // GET: api/Ejemplares
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Ejemplar>>> GetEjemplares()
+        public async Task<ActionResult<IEnumerable<Ejemplar>>> GetEjemplares([FromQuery] bool? disponible = null)
         {
-            return await _context.Ejemplares.AsNoTracking().ToListAsync();
+            var query = _context.Ejemplares.AsNoTracking().Where(e => !e.IsDeleted);
+            if (disponible.HasValue)
+                query = query.Where(e => e.Disponible == disponible.Value);
+            return await query.ToListAsync();
         }
 
-        // GET: api/Ejemplares/deleted
-        [HttpGet("deleted")]
-        public async Task<ActionResult<IEnumerable<Ejemplar>>> GetDeletedEjemplares()
+        [HttpGet("deleteds")]
+        public async Task<ActionResult<IEnumerable<Ejemplar>>> GetDeletedsEjemplares()
         {
-            return await _context.Ejemplares
-                .AsNoTracking()
-                .IgnoreQueryFilters()
-                .Where(e => e.IsDeleted).ToListAsync();
+            return await _context.Ejemplares.AsNoTracking().IgnoreQueryFilters().Where(e => e.IsDeleted).ToListAsync();
         }
 
-        // GET: api/Ejemplares/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Ejemplar>> GetEjemplar(int id)
         {
-            var ejemplar = await _context.Ejemplares.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
-
+            var ejemplar = await _context.Ejemplares.AsNoTracking().FirstOrDefaultAsync(e => e.Id.Equals(id));
             if (ejemplar == null)
             {
                 return NotFound();
             }
-
             return ejemplar;
         }
 
-        // PUT: api/Ejemplares/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutEjemplar(int id, Ejemplar ejemplar)
         {
+            _context.TryAttach(ejemplar?.Libro);
             if (id != ejemplar.Id)
             {
                 return BadRequest();
             }
-            _context.TryAttach(ejemplar.Libro);
             _context.Entry(ejemplar).State = EntityState.Modified;
             try
             {
@@ -81,18 +75,15 @@ namespace Backend.Controllers
             return NoContent();
         }
 
-        // POST: api/Ejemplares
         [HttpPost]
         public async Task<ActionResult<Ejemplar>> PostEjemplar(Ejemplar ejemplar)
         {
-            _context.TryAttach(ejemplar.Libro);
+            _context.TryAttach(ejemplar?.Libro);
             _context.Ejemplares.Add(ejemplar);
             await _context.SaveChangesAsync();
-
             return CreatedAtAction("GetEjemplar", new { id = ejemplar.Id }, ejemplar);
         }
 
-        // DELETE: api/Ejemplares/5 (soft delete)
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEjemplar(int id)
         {
@@ -101,19 +92,16 @@ namespace Backend.Controllers
             {
                 return NotFound();
             }
-
             ejemplar.IsDeleted = true;
             _context.Ejemplares.Update(ejemplar);
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
 
-        // PUT: api/Ejemplares/restore/5
-        [HttpPut("restore/{id}")]
+        [HttpPut("Restore/{id}")]
         public async Task<IActionResult> RestoreEjemplar(int id)
         {
-            var ejemplar = await _context.Ejemplares.IgnoreQueryFilters().FirstOrDefaultAsync(e => e.Id == id);
+            var ejemplar = await _context.Ejemplares.IgnoreQueryFilters().FirstOrDefaultAsync(e => e.Id.Equals(id));
             if (ejemplar == null)
             {
                 return NotFound();

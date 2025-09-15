@@ -7,42 +7,40 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.DataContext;
 using Service.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AutoresController : ControllerBase
     {
-        private readonly BibliotecaContext _context;
+        private readonly BiblioContext _context;
 
-        public AutoresController(BibliotecaContext context)
+        public AutoresController(BiblioContext context)
         {
             _context = context;
         }
 
         // GET: api/Autores
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Autor>>> GetAutores([FromQuery] string filtro="")
+        public async Task<ActionResult<IEnumerable<Autor>>> GetAutores([FromQuery] string filtro = "")
         {
             return await _context.Autores.AsNoTracking().Where(a => a.Nombre.Contains(filtro)).ToListAsync();
         }
 
-        // GET: api/Autores Deleted
-        [HttpGet("deleted")]
-        public async Task<ActionResult<IEnumerable<Autor>>> GetDeletedAutores()
+        [HttpGet("deleteds")]
+        public async Task<ActionResult<IEnumerable<Autor>>> GetDeletedsAutores([FromQuery] string filtro = "")
         {
-            return await _context.Autores
-                .AsNoTracking()
-                .IgnoreQueryFilters()
-                .Where(a => a.IsDeleted).ToListAsync();
+            return await _context.Autores.AsNoTracking().IgnoreQueryFilters().Where(a => a.IsDeleted).ToListAsync();
         }
 
         // GET: api/Autores/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Autor>> GetAutor(int id)
         {
-            var autor = await _context.Autores.AsNoTracking().FirstOrDefaultAsync(a=>a.Id.Equals(id));
+            var autor = await _context.Autores.AsNoTracking().FirstOrDefaultAsync(a => a.Id.Equals(id));
 
             if (autor == null)
             {
@@ -111,7 +109,7 @@ namespace Backend.Controllers
             return NoContent();
         }
 
-        [HttpPut("restore/{id}")]
+        [HttpPut("Restore/{id}")]
         public async Task<IActionResult> RestoreAutor(int id)
         {
             var autor = await _context.Autores.IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Id.Equals(id));

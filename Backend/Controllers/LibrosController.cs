@@ -1,63 +1,49 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.DataContext;
 using Service.Models;
-using Service.ExtensionMethod;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class LibrosController : ControllerBase
     {
-        private readonly BibliotecaContext _context;
+        private readonly BiblioContext _context;
 
-        public LibrosController(BibliotecaContext context)
+        public LibrosController(BiblioContext context)
         {
             _context = context;
         }
 
-        // GET: api/Libros
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Libro>>> GetLibros([FromQuery] string filtro = "")
         {
-            return await _context.Libros
-                .Include(l => l.Editorial)
-                .AsNoTracking()
-                .Where(l => l.Titulo.ToUpper().Contains(filtro.ToUpper()))
-                .ToListAsync();
+            return await _context.Libros.AsNoTracking().Where(l => l.Titulo.Contains(filtro)).ToListAsync();
         }
 
-        // GET: api/Libros/deleted
-        [HttpGet("deleted")]
-        public async Task<ActionResult<IEnumerable<Libro>>> GetDeletedLibros()
+        [HttpGet("deleteds")]
+        public async Task<ActionResult<IEnumerable<Libro>>> GetDeletedsLibros([FromQuery] string filtro = "")
         {
-            return await _context.Libros
-                .AsNoTracking()
-                .IgnoreQueryFilters()
-                .Where(l => l.IsDeleted).ToListAsync();
+            return await _context.Libros.AsNoTracking().IgnoreQueryFilters().Where(l => l.IsDeleted).ToListAsync();
         }
 
-        // GET: api/Libros/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Libro>> GetLibro(int id)
         {
-            var libro = await _context.Libros.AsNoTracking().FirstOrDefaultAsync(l => l.Id == id);
-
+            var libro = await _context.Libros.AsNoTracking().FirstOrDefaultAsync(l => l.Id.Equals(id));
             if (libro == null)
             {
                 return NotFound();
             }
-
             return libro;
         }
 
-        // PUT: api/Libros/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutLibro(int id, Libro libro)
         {
@@ -65,7 +51,6 @@ namespace Backend.Controllers
             {
                 return BadRequest();
             }
-            _context.TryAttach(libro.Editorial);
             _context.Entry(libro).State = EntityState.Modified;
             try
             {
@@ -85,17 +70,14 @@ namespace Backend.Controllers
             return NoContent();
         }
 
-        // POST: api/Libros
         [HttpPost]
         public async Task<ActionResult<Libro>> PostLibro(Libro libro)
         {
-            _context.TryAttach(libro.Editorial);
             _context.Libros.Add(libro);
             await _context.SaveChangesAsync();
             return CreatedAtAction("GetLibro", new { id = libro.Id }, libro);
         }
 
-        // DELETE: api/Libros/5 (soft delete)
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLibro(int id)
         {
@@ -104,19 +86,16 @@ namespace Backend.Controllers
             {
                 return NotFound();
             }
-
             libro.IsDeleted = true;
             _context.Libros.Update(libro);
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
 
-        // PUT: api/Libros/restore/5
-        [HttpPut("restore/{id}")]
+        [HttpPut("Restore/{id}")]
         public async Task<IActionResult> RestoreLibro(int id)
         {
-            var libro = await _context.Libros.IgnoreQueryFilters().FirstOrDefaultAsync(l => l.Id == id);
+            var libro = await _context.Libros.IgnoreQueryFilters().FirstOrDefaultAsync(l => l.Id.Equals(id));
             if (libro == null)
             {
                 return NotFound();
@@ -129,7 +108,7 @@ namespace Backend.Controllers
 
         private bool LibroExists(int id)
         {
-            return _context.Libros.Any(l => l.Id == id);
+            return _context.Libros.Any(e => e.Id == id);
         }
     }
 }

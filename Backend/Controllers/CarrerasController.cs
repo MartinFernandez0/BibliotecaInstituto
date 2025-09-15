@@ -1,22 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Backend.DataContext;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Backend.DataContext;
 using Service.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CarrerasController : ControllerBase
     {
-        private readonly BibliotecaContext _context;
+        private readonly BiblioContext _context;
 
-        public CarrerasController(BibliotecaContext context)
+        public CarrerasController(BiblioContext context)
         {
             _context = context;
         }
@@ -28,21 +30,17 @@ namespace Backend.Controllers
             return await _context.Carreras.AsNoTracking().Where(c => c.Nombre.Contains(filtro)).ToListAsync();
         }
 
-        // GET: api/Autores Deleted
-        [HttpGet("deleted")]
-        public async Task<ActionResult<IEnumerable<Carrera>>> GetDeletedAutores()
+        [HttpGet("deleteds")]
+        public async Task<ActionResult<IEnumerable<Carrera>>> GetDeletedsCarreras([FromQuery] string filtro = "")
         {
-            return await _context.Carreras
-                .AsNoTracking()
-                .IgnoreQueryFilters()
-                .Where(c => c.IsDeleted).ToListAsync();
+            return await _context.Carreras.AsNoTracking().IgnoreQueryFilters().Where(c => c.IsDeleted).ToListAsync();
         }
 
         // GET: api/Carreras/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Carrera>> GetCarrera(int id)
         {
-            var carrera = await _context.Carreras.FindAsync(id);
+            var carrera = await _context.Carreras.AsNoTracking().FirstOrDefaultAsync(c => c.Id.Equals(id));
 
             if (carrera == null)
             {
@@ -104,14 +102,15 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
-            _context.Carreras.Remove(carrera);
+            carrera.IsDeleted = true;
+            _context.Carreras.Update(carrera);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        [HttpPut("restore/{id}")]
-        public async Task<IActionResult> RestoreAutor(int id)
+        [HttpPut("Restore/{id}")]
+        public async Task<IActionResult> RestoreCarrera(int id)
         {
             var carrera = await _context.Carreras.IgnoreQueryFilters().FirstOrDefaultAsync(c => c.Id.Equals(id));
             if (carrera == null)
@@ -126,7 +125,7 @@ namespace Backend.Controllers
 
         private bool CarreraExists(int id)
         {
-            return _context.Carreras.Any(c => c.Id == id);
+            return _context.Carreras.Any(e => e.Id == id);
         }
     }
 }

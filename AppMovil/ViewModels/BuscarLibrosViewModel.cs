@@ -11,15 +11,16 @@ namespace AppMovil.ViewModels
         GenericService<Libro> _libroService = new GenericService<Libro>();
 
         [ObservableProperty]
-        //[NotifyCanExecuteChangedFor(nameof(BuscarCommand))]
         private string searchText = string.Empty;
 
         [ObservableProperty]
         private bool isBusy;
-        private readonly List<string> _todosLosLibros;
 
         [ObservableProperty]
-        private ObservableCollection<Libro> libros { get; set; } = new();
+        private ObservableCollection<Libro> libros = new();
+
+        private readonly List<string> _todosLosLibros;
+
         public IRelayCommand BuscarCommand { get; }
         public IRelayCommand LimpiarCommand { get; }
 
@@ -31,8 +32,7 @@ namespace AppMovil.ViewModels
 
         private async Task InicializarAsync()
         {
-            var libros = await _libroService.GetAllAsync();
-            Libros = new ObservableCollection<Libro>(libros ?? new List<Libro>());
+            OnBuscar();
         }
 
         partial void OnSearchTextChanged(string value)

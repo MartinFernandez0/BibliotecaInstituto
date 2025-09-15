@@ -1,3 +1,7 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Service.Models;
+using Service.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -5,104 +9,47 @@ using System.Windows.Input;
 
 namespace AppMovil.ViewModels
 {
-    public class PrestamosViewModel : INotifyPropertyChanged
+    public partial class PrestamosViewModel : ObservableObject
     {
+        GenericService<Prestamo> prestamoService = new();
+
+        [ObservableProperty]
         private bool _isBusy;
+        [ObservableProperty]
         private string _mensajeVacio = "No tienes préstamos activos";
-
-        public bool IsBusy
-        {
-            get => _isBusy;
-            set { _isBusy = value; OnPropertyChanged(); }
-        }
-
-        public string MensajeVacio
-        {
-            get => _mensajeVacio;
-            set { _mensajeVacio = value; OnPropertyChanged(); }
-        }
 
         public bool TienePrestamos => Prestamos.Count > 0;
 
-        public ObservableCollection<PrestamoItem> Prestamos { get; set; } = new();
-        public ICommand RefrescarCommand { get; }
-        public ICommand RenovarCommand { get; }
+        [ObservableProperty]
+        private ObservableCollection<Prestamo> prestamos = new();
+        public IRelayCommand GetAllComand { get; }
 
         public PrestamosViewModel()
         {
-            RefrescarCommand = new Command(OnRefrescar);
-            RenovarCommand = new Command<PrestamoItem>(OnRenovar);
-
-            CargarPrestamos();
+            GetAllComand = new RelayCommand(OnGetAll);
+            _ = InitializeAsync();
         }
 
-        private async void OnRefrescar()
+
+        private object InitializeAsync()
+        {
+            OnGetAll();
+        }
+
+        private async void OnGetAll()
         {
             if (IsBusy) return;
 
             try
             {
                 IsBusy = true;
-                await Task.Delay(1000); // Simula llamada a API
-                CargarPrestamos();
+                var Prestamos = await prestamoService.GetAllAsync();
+                prestamos = new ObservableCollection<Prestamo>(Prestamos ?? new List<Prestamo>());
             }
             finally
             {
                 IsBusy = false;
             }
-        }
-
-        private async void OnRenovar(PrestamoItem prestamo)
-        {
-            if (prestamo == null || IsBusy) return;
-
-            try
-            {
-                IsBusy = true;
-                await Task.Delay(500); // Simula renovación
-
-                // Extender fecha de vencimiento por 2 semanas
-                prestamo.FechaVencimiento = prestamo.FechaVencimiento.AddDays(14);
-                OnPropertyChanged(nameof(Prestamos));
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        private void CargarPrestamos()
-        {
-            Prestamos.Clear();
-
-            // Simulación de datos
-            Prestamos.Add(new PrestamoItem
-            {
-                Id = 1,
-                TituloLibro = "Cien años de soledad",
-                Autor = "Gabriel García Márquez",
-                FechaPrestamo = DateTime.Now.AddDays(-7),
-                FechaVencimiento = DateTime.Now.AddDays(7),
-                EstadoPrestamo = "Activo"
-            });
-
-            Prestamos.Add(new PrestamoItem
-            {
-                Id = 2,
-                TituloLibro = "La casa de los espíritus",
-                Autor = "Isabel Allende",
-                FechaPrestamo = DateTime.Now.AddDays(-14),
-                FechaVencimiento = DateTime.Now.AddDays(-1),
-                EstadoPrestamo = "Vencido"
-            });
-
-            OnPropertyChanged(nameof(TienePrestamos));
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 
@@ -132,4 +79,6 @@ namespace AppMovil.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
+
+
 }
