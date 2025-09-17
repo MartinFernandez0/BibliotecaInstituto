@@ -33,7 +33,8 @@ namespace Service.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadAsStringAsync();
-                    GenericService<object>.jwtToken = result;
+                    // limpiar comillas en caso de que el backend devuelva el token como string JSON
+                    GenericService<object>.jwtToken = result?.Trim().Trim('"');
                     return true;
                 }
                 else

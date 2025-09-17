@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:AppMovil"
     xmlns:viewModels="clr-namespace:AppMovil.ViewModels"
     Shell.FlyoutBehavior="Disabled"
-    Title="BibliotecaDigital">
+    Title="Biblioteca Digital">
 
     <Shell.BindingContext>
         <viewModels:AppShellViewModel x:Name="AppShellVM"/>
