@@ -11,7 +11,7 @@ namespace AppMovil.ViewModels
 {
     public partial class PrestamosViewModel : ObservableObject
     {
-        GenericService<Prestamo> prestamoService = new();
+        PrestamoService _prestamoService = new PrestamoService();
 
         [ObservableProperty]
         private bool _isBusy;
@@ -24,14 +24,16 @@ namespace AppMovil.ViewModels
         private ObservableCollection<Prestamo> prestamos = new();
         public IRelayCommand GetAllComand { get; }
 
+        private int _idUserLogin;
         public PrestamosViewModel()
         {
             GetAllComand = new RelayCommand(OnGetAll);
+            _idUserLogin = Preferences.Get("UserLoginId", 0);
             _ = InitializeAsync();
         }
 
 
-        private object InitializeAsync()
+        private async Task InitializeAsync()
         {
             OnGetAll();
         }
@@ -43,7 +45,7 @@ namespace AppMovil.ViewModels
             try
             {
                 IsBusy = true;
-                var Prestamos = await prestamoService.GetAllAsync();
+                var Prestamos = await _prestamoService.GetByUsuarioAsync(_idUserLogin);
                 prestamos = new ObservableCollection<Prestamo>(Prestamos ?? new List<Prestamo>());
             }
             finally

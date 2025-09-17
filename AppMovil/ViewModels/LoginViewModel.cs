@@ -72,9 +72,10 @@ namespace AppMovil.ViewModels
                     ErrorMessage = "No se pudo obtener la información del usuario.";
                     return;
                 }
-
+                Preferences.Set("UserLoginId", usuario.Id);
                 // PERMITE CUALQUIER USUARIO/CONTRASEÑA durante desarrollo
                 // Solo requiere que no estén vacíos
+                // En el LoginViewModel.cs, modifica el método OnLogin():
                 if (Application.Current?.MainPage is AppShell shell)
                 {
                     shell.SetLoginState(true);
