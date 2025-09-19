@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Service.Interfaces
 {
-    public interface IPrestamoService : IGenericService<Prestamo> 
+    public interface IPrestamoService : IGenericService<Prestamo>
     {
         public Task<List<Prestamo>?> GetByUsuarioAsync(int idUsuario);
     }

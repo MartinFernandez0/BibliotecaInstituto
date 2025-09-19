@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Backend.DataContext;
 using Service.Models;
 using Microsoft.AspNetCore.Authorization;
+using Service.DTOs;
 
 namespace Backend.Controllers
 {
@@ -24,7 +25,15 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Libro>>> GetLibros([FromQuery] string filtro = "")
         {
-            return await _context.Libros.AsNoTracking().Where(l => l.Titulo.Contains(filtro)).ToListAsync();
+            return await _context.Libros.Include(l=>l.Editorial).AsNoTracking().Where(l => l.Titulo.Contains(filtro)).ToListAsync();
+        }
+
+        //http POST
+        [HttpPost("WithFilter")]
+        public async Task<ActionResult<IEnumerable<Libro>>> GetLibros(FilterLibroDTO filter)
+        {
+            return await _context.Libros.Include(l => l.Editorial).
+                AsNoTracking().Where(l => l.Titulo.Contains(filter.SearchText)|| l.Editorial.Nombre.Contains(filter.SearchText)).ToListAsync();
         }
 
         [HttpGet("deleteds")]

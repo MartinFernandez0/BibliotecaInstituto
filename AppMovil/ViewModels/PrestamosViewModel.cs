@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Service.Models;
 using Service.Services;
@@ -11,29 +11,32 @@ namespace AppMovil.ViewModels
 {
     public partial class PrestamosViewModel : ObservableObject
     {
-        PrestamoService _prestamoService = new PrestamoService();
+        PrestamoService _prestamoService = new();
 
         [ObservableProperty]
-        private bool _isBusy;
-        [ObservableProperty]
-        private string _mensajeVacio = "No tienes pr�stamos activos";
-
-        public bool TienePrestamos => Prestamos.Count > 0;
+        private bool isBusy;
 
         [ObservableProperty]
-        private ObservableCollection<Prestamo> prestamos = new();
-        public IRelayCommand GetAllComand { get; }
+        private string mensajeVacio = "No tienes préstamos activos";
+
+        [ObservableProperty]
+        private ObservableCollection<Prestamo> prestamosVigentes = new();
+
+        [ObservableProperty]
+        private ObservableCollection<Prestamo> prestamosHistoricos = new();
+
+        public IRelayCommand GetAllCommand { get; }
 
         private int _idUserLogin;
+
         public PrestamosViewModel()
         {
-            GetAllComand = new RelayCommand(OnGetAll);
+            GetAllCommand = new RelayCommand(OnGetAll);
             _idUserLogin = Preferences.Get("UserLoginId", 0);
-            _ = InitializeAsync();
+            _ = InicializeAsync();
         }
 
-
-        private async Task InitializeAsync()
+        private async Task InicializeAsync()
         {
             OnGetAll();
         }
@@ -45,8 +48,10 @@ namespace AppMovil.ViewModels
             try
             {
                 IsBusy = true;
-                var Prestamos = await _prestamoService.GetByUsuarioAsync(_idUserLogin);
-                prestamos = new ObservableCollection<Prestamo>(Prestamos ?? new List<Prestamo>());
+                var prestamos = await _prestamoService.GetByUsuarioAsync(_idUserLogin);
+                PrestamosVigentes = new ObservableCollection<Prestamo>(prestamos?.Where(p => p.FechaDevolucion.Equals(null)) ?? new List<Prestamo>());
+
+                PrestamosHistoricos = new ObservableCollection<Prestamo>(prestamos?.Where(p => p.FechaDevolucion != null) ?? new List<Prestamo>());
             }
             finally
             {
@@ -54,33 +59,4 @@ namespace AppMovil.ViewModels
             }
         }
     }
-
-    public class PrestamoItem : INotifyPropertyChanged
-    {
-        public int Id { get; set; }
-        public string TituloLibro { get; set; } = string.Empty;
-        public string Autor { get; set; } = string.Empty;
-        public DateTime FechaPrestamo { get; set; }
-
-        private DateTime _fechaVencimiento;
-        public DateTime FechaVencimiento
-        {
-            get => _fechaVencimiento;
-            set { _fechaVencimiento = value; OnPropertyChanged(); OnPropertyChanged(nameof(DiasRestantes)); OnPropertyChanged(nameof(EstaVencido)); }
-        }
-
-        public string EstadoPrestamo { get; set; } = string.Empty;
-
-        public int DiasRestantes => (FechaVencimiento - DateTime.Now).Days;
-        public bool EstaVencido => DateTime.Now > FechaVencimiento;
-        public string ColorEstado => EstaVencido ? "#F44336" : (DiasRestantes <= 3 ? "#FF9800" : "#4CAF50");
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-
 }

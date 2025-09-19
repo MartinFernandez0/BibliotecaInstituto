@@ -1,5 +1,6 @@
 ﻿using Service.Interfaces;
 using Service.Models;
+using Service.DTOs;
 using Service.Utils;
 using System;
 using System.Collections.Generic;
@@ -12,22 +13,22 @@ using System.Threading.Tasks;
 
 namespace Service.Services
 {
-    public class PrestamoService : GenericService<Prestamo>, IPrestamoService
+    public class LibroService : GenericService<Libro>, ILibroService
     {
 
-        public PrestamoService(HttpClient? httpClient = null) : base(httpClient)
+        public LibroService(HttpClient? httpClient = null) : base(httpClient)
         {
         }
-        public async Task<List<Prestamo>?> GetByUsuarioAsync(int idUsuario)
+        public async Task<List<Libro>?> GetWithFilterAsync(FilterLibroDTO filter)
         {
             SetAuthorizationHeader();
-            var response = await _httpClient.GetAsync($"{_endpoint}/byusuario?idusuario={idUsuario}");
+            var response = await _httpClient.PostAsJsonAsync($"{_endpoint}/withFilter",filter);
             var content = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
             {
                 throw new Exception($"Error al obtener los datos: {response.StatusCode}");
             }
-            return JsonSerializer.Deserialize<List<Prestamo>>(content, _options);
+            return JsonSerializer.Deserialize<List<Libro>>(content, _options);
         }
     }
 }
