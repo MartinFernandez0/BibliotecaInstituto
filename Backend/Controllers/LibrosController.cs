@@ -22,18 +22,44 @@ namespace Backend.Controllers
             _context = context;
         }
 
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Libro>>> GetLibros([FromQuery] string filtro = "")
         {
-            return await _context.Libros.Include(l=>l.Editorial).AsNoTracking().Where(l => l.Titulo.Contains(filtro)).ToListAsync();
+            return await _context.Libros
+                .Include(l => l.Editorial)
+                .Include(l => l.LibroAutores).ThenInclude(la => la.Autor)
+                .Include(l => l.LibroGeneros).ThenInclude(lg => lg.Genero)
+                .AsNoTracking()
+                .Where(l => l.Titulo.Contains(filtro))
+                .ToListAsync();
         }
 
-        //http POST
+        // http POST
         [HttpPost("WithFilter")]
         public async Task<ActionResult<IEnumerable<Libro>>> GetLibros(FilterLibroDTO filter)
         {
-            return await _context.Libros.Include(l => l.Editorial).
-                AsNoTracking().Where(l => l.Titulo.Contains(filter.SearchText)|| l.Editorial.Nombre.Contains(filter.SearchText)).ToListAsync();
+            var query = _context.Libros
+                .Include(l => l.Editorial)
+                .Include(l => l.LibroAutores).ThenInclude(la => la.Autor)
+                .Include(l => l.LibroGeneros).ThenInclude(lg => lg.Genero)
+                .AsNoTracking()
+                .Where(l => !l.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(filter.SearchText))
+            {
+                var search = filter.SearchText.Trim().ToLower();
+
+                query = query.Where(l =>
+                    (filter.ForTitulo && l.Titulo.ToLower().Contains(search)) ||
+                    (filter.ForEditorial && l.Editorial != null && l.Editorial.Nombre.ToLower().Contains(search)) ||
+                    (filter.ForAutor && l.LibroAutores.Any(la => la.Autor != null && la.Autor.Nombre.ToLower().Contains(search))) ||
+                    (filter.ForGenero && l.LibroGeneros.Any(lg => lg.Genero != null && lg.Genero.Nombre.ToLower().Contains(search)))
+                );
+            }
+
+            var result = await query.ToListAsync();
+            return Ok(result);
         }
 
         [HttpGet("deleteds")]
