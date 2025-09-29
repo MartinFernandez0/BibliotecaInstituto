@@ -14,9 +14,6 @@ namespace Backend.Controllers
     public class GeminiController : ControllerBase
     {
 
-        private readonly HttpClient _httpClient;
-        private readonly IConfiguration _config;
-
         [HttpGet("prompt/{textPrompt}")]
         public async Task<IActionResult> GetPromt(string textPrompt)
         {
@@ -29,25 +26,26 @@ namespace Backend.Controllers
                       .Build();
                 var apiKey = configuration["ApiKeyGemini"];
                 var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key= " + apiKey;
+
                 var payload = new
                 {
                     contents = new[]
                     {
-                        new
+                    new
+                    {
+                        parts = new[]
                         {
-                            parts = new[]
-                            {
-                                new { text = textPrompt }
-                            }
+                            new { text = textPrompt }
                         }
                     }
+                }
                 };
-                var json = System.Text.Json.JsonSerializer.Serialize(payload);
+                var json = JsonSerializer.Serialize(payload);
                 using var client = new HttpClient();
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await client.PostAsync(url, content);
                 var result = await response.Content.ReadAsStringAsync();
-                using var doc = System.Text.Json.JsonDocument.Parse(result);
+                using var doc = JsonDocument.Parse(result);
                 var texto = doc.RootElement
                    .GetProperty("candidates")[0]
                    .GetProperty("content")
@@ -67,31 +65,38 @@ namespace Backend.Controllers
         /// Envía una imagen de portada y devuelve metadatos estructurados del libro.
         /// </summary>
         [HttpPost("ocr-portada")]
+        [Consumes("image/jpeg", "image/png", "application/octet-stream")]
+        [Produces("application/json")]
         [RequestSizeLimit(20_000_000)] // 20 MB
         public async Task<ActionResult<BookMetadataDTO>> ReconocerPortada([FromForm] BookCoverExtractionRequestDTO req, CancellationToken ct)
         {
-            if (req.Image == null || req.Image.Length == 0)
-                return BadRequest("Subí una imagen válida de la portada del libro.");
+            if (Request.ContentLength is null or <= 0)
+                return BadRequest("El cuerpo de la solicitud debe contener bytes de imagen.");
 
-            // Lee bytes y codifica base64 (inlineData)
+            // Lee el body a memoria (si preferís no cargar todo, podés streamear a archivo temporal)
             byte[] bytes;
             using (var ms = new MemoryStream())
             {
-                await req.Image.CopyToAsync(ms, ct);
+                await Request.Body.CopyToAsync(ms, ct);
                 bytes = ms.ToArray();
             }
-            var base64 = Convert.ToBase64String(bytes);
+
+            // Determina MIME
+            var mime = DetectMime(Request.ContentType, bytes);
+            if (mime is null || (mime != "image/jpeg" && mime != "image/png"))
+                return BadRequest("La imagen debe ser JPEG o PNG.");
 
             // Modelo y API key (appsettings.json → "Gemini:ApiKey")
-            //leemos la api key desde appsettings.json
             var configuration = new ConfigurationBuilder()
-                  .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                  .AddEnvironmentVariables()
-                  .Build();
+                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                     .AddEnvironmentVariables()
+                     .Build();
             var apiKey = configuration["ApiKeyGemini"];
             var endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key= " + apiKey;
             if (string.IsNullOrWhiteSpace(apiKey))
                 return StatusCode(500, "Falta configurar Gemini:ApiKey.");
+
+
 
             // Prompt en español + salida JSON estricta (response_schema)
             var prompt = """
@@ -105,21 +110,21 @@ Eres un asistente experto en catalogación bibliográfica. Analiza EXCLUSIVAMENT
             {
                 contents = new[]
                 {
-                new
-                {
-                    role = "user",
-                    parts = new object[]
+                    new
                     {
-                        new { text = prompt },
-                        new {
-                            inline_data = new {
-                                mime_type = req.Image.ContentType ?? "image/jpeg",
-                                data = base64
+                        role = "user",
+                        parts = new object[]
+                        {
+                            new { text = prompt },
+                            new {
+                                inline_data = new {
+                                    mime_type = req.Image.ContentType ?? "image/jpeg",
+                                    //data = base64
+                                }
                             }
                         }
                     }
-                }
-            },
+                },
                 generationConfig = new
                 {
                     response_mime_type = "application/json",
@@ -144,14 +149,14 @@ Eres un asistente experto en catalogación bibliográfica. Analiza EXCLUSIVAMENT
                 }
             };
 
-            using var client = new HttpClient();
+            var http = new HttpClient();
             using var msg = new HttpRequestMessage(HttpMethod.Post, endpoint)
             {
                 Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
             };
             msg.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            using var resp = await client.SendAsync(msg, ct);
+            using var resp = await http.SendAsync(msg, ct);
             var json = await resp.Content.ReadAsStringAsync(ct);
 
             if (!resp.IsSuccessStatusCode)
@@ -186,5 +191,29 @@ Eres un asistente experto en catalogación bibliográfica. Analiza EXCLUSIVAMENT
 
             return Ok(data);
         }
+
+        // Detección simple de MIME con fallback por magic numbers
+        private static string? DetectMime(string? contentType, byte[] bytes)
+        {
+            if (!string.IsNullOrWhiteSpace(contentType))
+            {
+                var ct = contentType.Split(';')[0].Trim().ToLowerInvariant();
+                if (ct is "image/jpeg" or "image/jpg" or "image/png") return ct == "image/jpg" ? "image/jpeg" : ct;
+                if (ct == "application/octet-stream")
+                {
+                    // cae a magic numbers
+                }
+            }
+
+            // JPEG: FF D8 FF
+            if (bytes.Length > 3 && bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF) return "image/jpeg";
+            // PNG: 89 50 4E 47 0D 0A 1A 0A
+            if (bytes.Length > 8 &&
+                bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47 &&
+                bytes[4] == 0x0D && bytes[5] == 0x0A && bytes[6] == 0x1A && bytes[7] == 0x0A) return "image/png";
+
+            return null;
+        }
+
     }
 }

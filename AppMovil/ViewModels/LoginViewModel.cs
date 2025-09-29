@@ -29,6 +29,10 @@ namespace AppMovil.ViewModels
         private string errorMessage = string.Empty;
 
         public IRelayCommand LoginCommand { get; }
+        public IRelayCommand ForgotPasswordCommand { get; }
+
+        public IRelayCommand RegisterCommand { get; }
+
 
 
         public LoginViewModel()
@@ -36,8 +40,29 @@ namespace AppMovil.ViewModels
             _authService = new AuthService();
             _usuarioService = new UsuarioService();
             LoginCommand = new RelayCommand(OnLogin, CanLogin);
+            ForgotPasswordCommand = new RelayCommand(OnForgotPassword);
+            RegisterCommand = new RelayCommand(OnRegister);
         }
-        
+
+        private void OnRegister()
+        {
+            if (Application.Current?.MainPage is AppShell shell)
+            {
+                shell.ViewModel.RegistrarseVisible = true;
+                shell.SetLoginState(false);
+            }
+        }
+
+        private void OnForgotPassword()
+        {
+            //tomo referencia del shell
+            if (Application.Current?.MainPage is AppShell shell)
+            {
+                shell.ViewModel.ResetPasswordVisible = true;
+                shell.SetLoginState(false);
+            }
+        }
+
         private bool CanLogin()
         {
             return !IsBusy &&

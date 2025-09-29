@@ -10,5 +10,7 @@ namespace Service.Interfaces
     public interface IAuthService
     {
         Task<bool> Login(LoginDTO login);
+        Task<bool> Resetpassword(LoginDTO? login);
+        Task<bool> CreateUserWithEmailAndPasswordAsync(string email, string password, string nombre);
     }
 }

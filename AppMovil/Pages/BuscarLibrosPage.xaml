@@ -1,7 +1,8 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:AppMovil.ViewModels"
-             x:Class="AppMovil.BuscarLibrosPage"
+             xmlns:pages="clr-namespace:AppMovil.Pages"
+             x:Class="AppMovil.Pages.BuscarLibrosPage"
              Title="Buscar Libros">
     
     <ContentPage.BindingContext>
@@ -172,7 +173,7 @@
                                    HasShadow="True"
                                    BorderColor="LightSteelBlue">
                                 <Grid ColumnDefinitions="Auto, *, Auto" 
-                                      RowDefinitions="Auto, Auto, Auto, Auto, Auto">
+                                      RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto,Auto">
 
                                     <!-- Ícono principal -->
                                     <Label Grid.Column="0" Grid.Row="0" Grid.RowSpan="5"
@@ -243,7 +244,7 @@
                                            Margin="0,8,0,0"/>
 
                                     <!--Generos-->
-                                    <Label Grid.Column="1" Grid.Row="4"
+                                    <Label Grid.Column="1" Grid.Row="6"
                                            Text="{Binding Generos}" 
                                            FontSize="13"
                                            TextColor="DarkGray"
@@ -252,7 +253,7 @@
                                            Margin="0,8,0,0"/>
 
                                     <!-- Botón de acción -->
-                                    <Button Grid.Column="2" Grid.Row="0" Grid.RowSpan="6"
+                                    <Button Grid.Column="2" Grid.Row="0" Grid.RowSpan="5"
                                             Text="📖&#x0a;Ver"
                                             BackgroundColor="LightBlue"
                                             TextColor="DarkBlue"

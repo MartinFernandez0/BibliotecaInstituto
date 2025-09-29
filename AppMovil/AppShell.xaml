@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:AppMovil"
     xmlns:viewModels="clr-namespace:AppMovil.ViewModels"
+    xmlns:pages="clr-namespace:AppMovil.Pages"
     Shell.FlyoutBehavior="Disabled"
     Title="Biblioteca Digital">
 
@@ -25,9 +26,25 @@
     <!-- Pantalla de Login -->
     <ShellContent
         Title="Login"
-        ContentTemplate="{DataTemplate local:LoginPage}"
+        ContentTemplate="{DataTemplate pages:LoginPage}"
         Route="LoginPage"
         IsVisible="{Binding LoginVisible}"
+        FlyoutItemIsVisible="False" />
+
+    <!-- Pantalla de Registrarse -->
+    <ShellContent
+        Title="Registrarse"
+        ContentTemplate="{DataTemplate pages:RegistrarsePage}"
+        Route="RegistrarsePage"
+        IsVisible="{Binding RegistrarseVisible}"
+        FlyoutItemIsVisible="False" />
+
+    <!-- Pantalla de Recuperar Contraseña -->
+    <ShellContent
+        Title="Recuperar Contraseña"
+        ContentTemplate="{DataTemplate pages:RecuperarPasswordPage}"
+        Route="ResetPassword"
+        IsVisible="{Binding ResetPasswordVisible}"
         FlyoutItemIsVisible="False" />
 
     <!-- Menu Principal - Solo visible cuando está logueado -->
@@ -41,22 +58,15 @@
     <FlyoutItem Title="📖 Buscar Libros" Icon="search.png" IsVisible="{Binding MenuVisible}">
         <ShellContent
             Title="Buscar Libros"
-            ContentTemplate="{DataTemplate local:BuscarLibrosPage}"
+            ContentTemplate="{DataTemplate pages:BuscarLibrosPage}"
             Route="BuscarLibrosPage" />
     </FlyoutItem>
 
     <FlyoutItem Title="📋 Mis Prestamos" Icon="book.png" IsVisible="{Binding MenuVisible}">
         <ShellContent
             Title="Prestamos"
-            ContentTemplate="{DataTemplate local:PrestamosPage}"
+            ContentTemplate="{DataTemplate pages:PrestamosPage}"
             Route="PrestamosPage" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="↩️ Devoluciones" Icon="return.png" IsVisible="{Binding MenuVisible}">
-        <ShellContent
-            Title="Devoluciones"
-            ContentTemplate="{DataTemplate local:DevolucionesPage}"
-            Route="DevolucionesPage" />
     </FlyoutItem>
 
     <!-- Footer del Flyout con opción de logout -->
@@ -70,5 +80,5 @@
                 CornerRadius="5"/>
         </StackLayout>
     </Shell.FlyoutFooter>
-</Shell>
 
+</Shell>

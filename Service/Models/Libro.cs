@@ -27,7 +27,8 @@ namespace Service.Models
             get
             {
                 if (LibroAutores == null || LibroAutores.Count == 0)
-                    return "Autor/es: " + string.Empty;
+                    return string.Empty;
+                var textAutor = LibroAutores.Count > 1 ? "Autores: " : "Autor: ";
                 return string.Join(", ", LibroAutores.Where(la => la.Autor != null && !la.Autor.IsDeleted).Select(la => la.Autor!.Nombre));
             }
         }
@@ -38,7 +39,8 @@ namespace Service.Models
             get
             {
                 if (LibroGeneros == null || LibroGeneros.Count == 0)
-                    return "Genero/s: "+ string.Empty;
+                    return string.Empty;
+                var textGenero = LibroGeneros.Count > 1 ? "Generos: " : "Genero: ";
                 return string.Join(", ", LibroGeneros.Where(lg => lg.Genero != null && !lg.Genero.IsDeleted).Select(lg => lg.Genero!.Nombre));
             }
         }

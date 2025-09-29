@@ -17,6 +17,10 @@ namespace AppMovil.ViewModels
         private bool loginVisible = true;
         [ObservableProperty]
         private bool menuVisible = false;
+        [ObservableProperty]
+        private bool resetPasswordVisible = false;
+        [ObservableProperty]
+        private bool registrarseVisible = false;
 
         public Usuario? Usuario { get; private set; }
 
@@ -42,7 +46,11 @@ namespace AppMovil.ViewModels
             IsLoggedIn = isLoggedIn;
             if (isLoggedIn)
                 Shell.Current.GoToAsync("//MainPage");  // Cambio a MainPage (pantalla de inicio)
-            else
+            else if (ResetPasswordVisible)
+                Shell.Current.GoToAsync("//ResetPassword");
+            else if(RegistrarseVisible)
+                Shell.Current.GoToAsync("//RegistrarsePage");
+            else if (!isLoggedIn)
                 Shell.Current.GoToAsync("//LoginPage");
         }
 
