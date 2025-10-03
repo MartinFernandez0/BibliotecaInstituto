@@ -30,10 +30,7 @@ namespace AppMovil.ViewModels
 
         public IRelayCommand LoginCommand { get; }
         public IRelayCommand ForgotPasswordCommand { get; }
-
         public IRelayCommand RegisterCommand { get; }
-
-
 
         public LoginViewModel()
         {
@@ -53,9 +50,8 @@ namespace AppMovil.ViewModels
             }
         }
 
-        private void OnForgotPassword()
+        private async void OnForgotPassword()
         {
-            //tomo referencia del shell
             if (Application.Current?.MainPage is AppShell shell)
             {
                 shell.ViewModel.ResetPasswordVisible = true;
@@ -92,15 +88,15 @@ namespace AppMovil.ViewModels
                 }
 
                 var usuario = await _usuarioService.GetByEmailAsync(username);
-                if ( usuario == null)
+                if (usuario == null)
                 {
                     ErrorMessage = "No se pudo obtener la información del usuario.";
                     return;
                 }
                 Preferences.Set("UserLoginId", usuario.Id);
+
                 // PERMITE CUALQUIER USUARIO/CONTRASEÑA durante desarrollo
                 // Solo requiere que no estén vacíos
-                // En el LoginViewModel.cs, modifica el método OnLogin():
                 if (Application.Current?.MainPage is AppShell shell)
                 {
                     shell.SetLoginState(true);

@@ -9,15 +9,12 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Service.Services;
-using Service.Models;
-using Service.Enums;
 
 namespace AppMovil.ViewModels
 {
     public partial class RegistrarseViewModel : ObservableObject
     {
         AuthService _authService = new();
-        UsuarioService _usuarioService = new();
 
         public IRelayCommand RegistrarseCommand { get; }
 
@@ -48,19 +45,9 @@ namespace AppMovil.ViewModels
 
             try
             {
-                var user = await _authService.CreateUserWithEmailAndPasswordAsync(Mail, Password, Nombre);
-                if (user == false)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Registrarse", "Ocurrió un problema al crear el usuario.", "Ok");
-                    return;
-                }
-                else 
-                { 
-                    var newUser = new Usuario { Nombre = nombre, Email = mail, TipoRol=TipoRolEnum.Alumno, Dni="12345678" };
-                    await _usuarioService.AddAsync(newUser);
-                    await Application.Current.MainPage.DisplayAlert("Registrarse", "Cuenta creada!", "Ok");
-                    await Shell.Current.GoToAsync("//LoginPage");
-                }
+                var user = await _authService.CreateUserWithEmailAndPasswordAsync(mail, password, nombre);
+                await Application.Current.MainPage.DisplayAlert("Registrarse", "Cuenta creada!", "Ok");
+                await Shell.Current.GoToAsync("//LoginPage");
             }
             catch (FirebaseAuthException error) // Use alias here 
             {

@@ -15,20 +15,14 @@ namespace Service.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IConfiguration _configuration;
-        public AuthService()
-        {
-        }
-
-        protected void SetAuthorizationHeader(HttpClient http)
+        public AuthService() { }
+        protected void SetAuthorizationHeader(HttpClient _httpClient)
         {
             if (!string.IsNullOrEmpty(GenericService<object>.jwtToken))
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GenericService<object>.jwtToken);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GenericService<object>.jwtToken);
             else
                 throw new ArgumentException("Token no definido.", nameof(GenericService<object>.jwtToken));
         }
-
-        
         public async Task<bool> Login(LoginDTO? login)
         {
             if (login == null)
@@ -40,13 +34,12 @@ namespace Service.Services
                 var UrlApi = Properties.Resources.UrlApi;
                 var endpointAuth = ApiEndpoints.GetEndpoint("Login");
                 var client = new HttpClient();
-                SetAuthorizationHeader(client);
-                var response = await client.PostAsJsonAsync($"{UrlApi}{endpointAuth}/login/",login);
+                var response = await client.PostAsJsonAsync($"{UrlApi}{endpointAuth}/login/", login);
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadAsStringAsync();
-                    // limpiar comillas en caso de que el backend devuelva el token como string JSON
-                    GenericService<object>.jwtToken = result?.Trim().Trim('"');
+
+                    GenericService<object>.jwtToken = result;
                     return true;
                 }
                 else
@@ -59,9 +52,7 @@ namespace Service.Services
                 throw new Exception("Error en el login" + ex.Message);
             }
         }
-
-
-        public async Task<bool> Resetpassword(LoginDTO? login)
+        public async Task<bool> ResetPassword(LoginDTO? login)
         {
             if (login == null)
             {
@@ -76,8 +67,7 @@ namespace Service.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadAsStringAsync();
-                    // limpiar comillas en caso de que el backend devuelva el token como string JSON
-                    GenericService<object>.jwtToken = result?.Trim().Trim('"');
+
                     return true;
                 }
                 else
@@ -90,7 +80,6 @@ namespace Service.Services
                 throw new Exception("Error al resetear" + ex.Message);
             }
         }
-
         public async Task<bool> CreateUserWithEmailAndPasswordAsync(string email, string password, string nombre)
         {
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(nombre))

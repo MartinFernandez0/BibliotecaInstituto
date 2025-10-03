@@ -19,8 +19,8 @@ namespace BiblioTestProject
             var serviceAuth = new AuthService();
             var token = await serviceAuth.Login(new LoginDTO
             {
-                Username = "sofiimellano@gmail.com",
-                Password = "123457"
+                Username = "martinexefe@gmail.com",
+                Password = "234567"
             });
         }
 
@@ -31,7 +31,7 @@ namespace BiblioTestProject
             var serviceAuth = new AuthService();
             var loginDTO = new LoginDTO
             {
-                Username = "sofiimellano@gmail.com",
+                Username = "martinexefe@gmail.com",
                 Password = "no hace falta"
 
             };

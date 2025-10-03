@@ -1,18 +1,21 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Service.DTOs;
+using Service.Interfaces;
 using Service.Services;
 
 namespace AppMovil.ViewModels
 {
     public partial class RecuperarPasswordViewModel : ObservableObject
     {
-        AuthService authService = new ();
+        AuthService _authService = new();
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(EnviarCommand))]
         private string mail = string.Empty;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(EnviarCommand))]
         private bool isBusy = false;
 
         [ObservableProperty]
@@ -26,7 +29,7 @@ namespace AppMovil.ViewModels
 
         public RecuperarPasswordViewModel()
         {
-            EnviarCommand = new AsyncRelayCommand(OnEnviar, CanEnviar); 
+            EnviarCommand = new AsyncRelayCommand(OnEnviar, CanEnviar);
             VolverCommand = new AsyncRelayCommand(OnVolver);
         }
 
@@ -45,24 +48,32 @@ namespace AppMovil.ViewModels
                 ErrorMessage = string.Empty;
                 SuccessMessage = string.Empty;
 
-                // Validación básica de email
+                // Validaci�n b�sica de email
                 if (!Mail.Contains("@") || !Mail.Contains("."))
                 {
-                    ErrorMessage = "Por favor, ingrese un correo electrónico válido";
+                    ErrorMessage = "Por favor, ingrese un correo electr�nico v�lido";
                     return;
                 }
 
-               LoginDTO loginreset = new LoginDTO
+                LoginDTO loginReset = new LoginDTO
                 {
                     Username = Mail,
-                    Password = "" // No es necesario para la recuperación
-               };
+                    Password = string.Empty // No se necesita contrase�a para recuperaci�n
+                };
 
-                await authService.Login(loginreset);
+                bool result = await _authService.ResetPassword(loginReset);
 
-                // Opcional: Volver al login después de unos segundos
-                await Task.Delay(2000);
-                await OnVolver();
+                if (result)
+                {
+                    SuccessMessage = "Se han enviado las instrucciones a su correo electr�nico";
+                    // Esperar 3 segundos para que el usuario vea el mensaje antes de volver
+                    await Task.Delay(3000);
+                    await OnVolver();
+                }
+                else
+                {
+                    ErrorMessage = "No se pudo enviar las instrucciones. Verifique su correo electr�nico e intente nuevamente.";
+                }
             }
             catch (Exception ex)
             {

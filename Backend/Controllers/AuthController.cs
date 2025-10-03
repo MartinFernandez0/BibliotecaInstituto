@@ -17,24 +17,23 @@ namespace Backend.Controllers
         FirebaseAuthClient firebaseAuthClient;
         IConfiguration _configuration;
         FirebaseAuthConfig _config;
-
         public AuthController(IConfiguration configuration)
         {
             _configuration = configuration;
-            SetFirebaseConfig();
+            SettingFirebase();
         }
-
-        private void SetFirebaseConfig()
+        private void SettingFirebase()
         {
-
             _config = new FirebaseAuthConfig
             {
+
                 ApiKey = _configuration["ApiKeyFirebase"],
                 AuthDomain = _configuration["AuthDomainFirebase"],
                 Providers = new FirebaseAuthProvider[]
-                   {
+                {
                     new EmailProvider()
-                   },
+
+                },
             };
 
             firebaseAuthClient = new FirebaseAuthClient(_config);
@@ -45,8 +44,8 @@ namespace Backend.Controllers
         {
             try
             {
-                var credentials = await firebaseAuthClient.SignInWithEmailAndPasswordAsync(login.Username, login.Password);
-                return Ok(credentials.User.GetIdTokenAsync().Result);
+                var credential = await firebaseAuthClient.SignInWithEmailAndPasswordAsync(login.Username, login.Password);
+                return Ok(credential.User.GetIdTokenAsync().Result);
             }
             catch (FirebaseAuthException ex)
             {
@@ -69,6 +68,7 @@ namespace Backend.Controllers
             }
         }
 
+
         [HttpPost("resetpassword")]
         public async Task<IActionResult> ResetPassword([FromBody] LoginDTO login)
         {
@@ -83,13 +83,11 @@ namespace Backend.Controllers
             }
         }
 
-        [HttpPost("SendVerificationMailAsync")]
         private async Task SendVerificationEmailAsync(string idToken)
         {
-            var RequestUri = "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=" + _config.ApiKey;
             using (var client = new HttpClient())
             {
-
+                var RequestUri = "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=" + _config.ApiKey;
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 var content = new StringContent("{\"requestType\":\"VERIFY_EMAIL\",\"idToken\":\"" + idToken + "\"}");
@@ -99,7 +97,6 @@ namespace Backend.Controllers
                 response.EnsureSuccessStatusCode();
             }
         }
-
 
     }
 }

@@ -48,10 +48,11 @@ namespace AppMovil.ViewModels
                 Shell.Current.GoToAsync("//MainPage");  // Cambio a MainPage (pantalla de inicio)
             else if (ResetPasswordVisible)
                 Shell.Current.GoToAsync("//ResetPassword");
-            else if(RegistrarseVisible)
+            else if (RegistrarseVisible)
                 Shell.Current.GoToAsync("//RegistrarsePage");
-            else if (!isLoggedIn)
+            else
                 Shell.Current.GoToAsync("//LoginPage");
+
         }
 
         public void SetUserLogin(Usuario usuario)
