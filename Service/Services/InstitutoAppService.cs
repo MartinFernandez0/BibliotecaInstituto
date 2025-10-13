@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Service.Services
 {
-    public class InstitutoAppService : IInstitutoAppService
+    public class InstitutoAppService
     {
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient = new HttpClient();
@@ -35,7 +35,13 @@ namespace Service.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadAsStringAsync();
-                    return result;
+                    // Deserializar el string JSON a un objeto Usuario
+                    var usuario = System.Text.Json.JsonSerializer.Deserialize<Usuario>(result);
+                    if (usuario == null)
+                    {
+                        throw new Exception("No se pudo deserializar la respuesta a Usuario.");
+                    }
+                    return usuario;
                 }
                 else
                 {

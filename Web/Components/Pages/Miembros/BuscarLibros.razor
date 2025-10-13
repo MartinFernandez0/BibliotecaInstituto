@@ -1,0 +1,320 @@
+﻿@page "/miembros/buscar-libros"
+@inject ILibroService _libroService
+@inject SweetAlertService _sweetAlert
+@inject NavigationManager _navigationManager
+@rendermode InteractiveServer
+
+<div class="search-wrapper">
+    <div class="container-fluid py-4">
+        
+        <!-- Encabezado -->
+        <div class="card header-card shadow-lg border-0 rounded-4 mb-4">
+            <div class="card-body bg-gradient-primary text-white p-4 rounded-4">
+                <div class="text-center">
+                    <h2 class="mb-2 fw-bold">
+                        <i class="bi bi-search fs-1 me-2"></i>
+                        Buscar Libros
+                    </h2>
+                    <p class="mb-0 opacity-75 fs-5">Encuentra libros en nuestro catálogo</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de búsqueda -->
+        <div class="card search-card shadow border-0 rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-question-circle me-2"></i>
+                    ¿Qué libro estás buscando?
+                </h5>
+
+                <!-- Barra de búsqueda -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-10">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light-subtle">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input class="form-control" @bind="searchText" @bind:event="oninput" 
+                                   placeholder="Buscar por título, autor, editorial..." />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-success btn-lg w-100" @onclick="Buscar" disabled="@isBusy">
+                            @if (isBusy)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            <i class="bi bi-search me-1"></i>
+                            Buscar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Botón filtros -->
+                <button class="btn btn-outline-primary mb-3" @onclick="ToggleFiltros">
+                    <i class="bi bi-gear me-2"></i>
+                    Filtros de búsqueda
+                    <i class="bi @(mostrarFiltros ? "bi-chevron-up" : "bi-chevron-down") ms-2"></i>
+                </button>
+
+                <!-- Panel de filtros -->
+                <div class="@(mostrarFiltros ? "d-block" : "d-none")">
+                    <div class="card bg-light border-primary">
+                        <div class="card-body">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="bi bi-funnel me-2"></i>
+                                Buscar en:
+                            </h6>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" @bind="filtrarPorTitulo" id="filtroTitulo">
+                                        <label class="form-check-label" for="filtroTitulo">
+                                            <i class="bi bi-book me-1"></i> Título
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" @bind="filtrarPorAutor" id="filtroAutor">
+                                        <label class="form-check-label" for="filtroAutor">
+                                            <i class="bi bi-person-fill me-1"></i> Autor
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" @bind="filtrarPorEditorial" id="filtroEditorial">
+                                        <label class="form-check-label" for="filtroEditorial">
+                                            <i class="bi bi-building me-1"></i> Editorial
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" @bind="filtrarPorGenero" id="filtroGenero">
+                                        <label class="form-check-label" for="filtroGenero">
+                                            <i class="bi bi-tags me-1"></i> Género
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-warning mt-3" @onclick="LimpiarBusqueda">
+                                <i class="bi bi-arrow-clockwise me-2"></i>
+                                Limpiar búsqueda
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Indicador de carga -->
+                @if (isBusy)
+                {
+                    <div class="text-center mt-3">
+                        <div class="spinner-border text-primary me-2" role="status"></div>
+                        <span class="text-primary">Buscando libros...</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Sección de resultados -->
+        @if (hasRendered)
+        {
+            <div class="card results-card shadow border-0 rounded-4 mb-3">
+                <div class="card-header bg-success text-white rounded-top-4 py-3">
+                    <div class="text-center">
+                        <h5 class="mb-1 fw-bold">
+                            <i class="bi bi-collection me-2"></i>
+                            Resultados de búsqueda
+                        </h5>
+                        <small>@libros.Count libros encontrados</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de libros -->
+            @if (libros.Any())
+            {
+                <div class="row g-4">
+                    @foreach (var libro in libros)
+                    {
+                        <div class="col-12">
+                            <div class="card book-card shadow border-0 rounded-4">
+                                <div class="card-body p-4">
+                                    <div class="row align-items-start">
+                                        <!-- Ícono del libro -->
+                                        <div class="col-auto">
+                                            <div class="book-icon text-primary">
+                                                <i class="bi bi-book-fill"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Información del libro -->
+                                        <div class="col">
+                                            <h4 class="book-title fw-bold text-dark mb-2">@libro.Titulo</h4>
+                                            
+                                            <div class="book-details">
+                                                @if (!string.IsNullOrEmpty(libro.Autores))
+                                                {
+                                                    <p class="mb-2">
+                                                        <i class="bi bi-person-fill text-muted me-2"></i>
+                                                        <span class="text-muted">@libro.Autores</span>
+                                                    </p>
+                                                }
+                                                
+                                                @if (!string.IsNullOrEmpty(libro.Generos))
+                                                {
+                                                    <p class="mb-2">
+                                                        <i class="bi bi-tags text-muted me-2"></i>
+                                                        <span class="text-muted">@libro.Generos</span>
+                                                    </p>
+                                                }
+                                                
+                                                @if (libro.Editorial != null)
+                                                {
+                                                    <p class="mb-2">
+                                                        <i class="bi bi-building text-muted me-2"></i>
+                                                        <span class="text-muted">Editorial: @libro.Editorial.Nombre</span>
+                                                    </p>
+                                                }
+                                                
+                                                @if (libro.AnioPublicacion > 0)
+                                                {
+                                                    <p class="mb-2">
+                                                        <i class="bi bi-calendar text-muted me-2"></i>
+                                                        <span class="text-muted">Año: @libro.AnioPublicacion</span>
+                                                    </p>
+                                                }
+                                                
+                                                @if (libro.Paginas > 0)
+                                                {
+                                                    <p class="mb-2">
+                                                        <i class="bi bi-file-text text-muted me-2"></i>
+                                                        <span class="text-muted">Páginas: @libro.Paginas</span>
+                                                    </p>
+                                                }
+                                            </div>
+
+                                            @if (!string.IsNullOrEmpty(libro.Descripcion))
+                                            {
+                                                <p class="book-description text-muted mt-3 mb-0">@libro.Descripcion</p>
+                                            }
+                                        </div>
+
+                                        <!-- Botón de acción -->
+                                        <div class="col-auto">
+                                            <button class="btn btn-primary btn-lg rounded-3" @onclick="() => VerDetalles(libro.Id)">
+                                                <i class="bi bi-eye me-2"></i>
+                                                Ver<br/>Detalles
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else if (!isBusy && hasSearched)
+            {
+                <!-- Mensaje sin resultados -->
+                <div class="card border-warning">
+                    <div class="card-body text-center p-5">
+                        <i class="bi bi-emoji-frown text-warning" style="font-size: 3rem;"></i>
+                        <h4 class="text-warning mt-3">Sin resultados</h4>
+                        <p class="text-muted">Intenta con otros términos de búsqueda o ajusta los filtros</p>
+                        <small class="text-muted">
+                            <i class="bi bi-lightbulb me-1"></i>
+                            Tip: Usa palabras clave simples y verifica que los filtros apropiados estén seleccionados
+                        </small>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private string searchText = string.Empty;
+    private bool isBusy = false;
+    private bool hasSearched = false;
+    private bool hasRendered = false;
+    private bool mostrarFiltros = false;
+    
+    // Filtros
+    private bool filtrarPorTitulo = true;
+    private bool filtrarPorAutor = false;
+    private bool filtrarPorEditorial = false;
+    private bool filtrarPorGenero = false;
+    
+    private List<Libro> libros = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            hasRendered = true;
+            await Buscar();
+            StateHasChanged();
+        }
+    }
+
+    private async Task Buscar()
+    {
+        if (isBusy) return;
+
+        try
+        {
+            isBusy = true;
+            hasSearched = true;
+            StateHasChanged();
+
+            var filtro = new FilterLibroDTO
+            {
+                SearchText = this.searchText,
+                ForTitulo = this.filtrarPorTitulo,
+                ForAutor = this.filtrarPorAutor,
+                ForEditorial = this.filtrarPorEditorial,
+                ForGenero = this.filtrarPorGenero
+            };
+
+            var resultado = await _libroService.GetWithFilterAsync(filtro);
+            libros = resultado?.ToList() ?? new List<Libro>();
+        }
+        catch (Exception ex)
+        {
+            // Solo usar SweetAlert si ya se ha renderizado
+            if (hasRendered)
+            {
+                await _sweetAlert.FireAsync("Error", $"Error al buscar libros: {ex.Message}", SweetAlertIcon.Error);
+            }
+            libros = new List<Libro>();
+        }
+        finally
+        {
+            isBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleFiltros()
+    {
+        mostrarFiltros = !mostrarFiltros;
+    }
+
+    private async Task LimpiarBusqueda()
+    {
+        searchText = string.Empty;
+        await Buscar();
+    }
+
+    private async Task VerDetalles(int libroId)
+    {
+        // Navegar a página de detalles del libro
+        _navigationManager.NavigateTo($"/libro/{libroId}");
+    }
+}

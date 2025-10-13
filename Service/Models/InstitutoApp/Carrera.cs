@@ -1,10 +1,11 @@
 ﻿
 namespace Service.Models.InstitutoApp
 {
-    public class Docente 
+    public class Carrera 
     {
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
+        public string Sigla { get; set; } = string.Empty;
         public bool Eliminado { get; set; } = false;
 
 

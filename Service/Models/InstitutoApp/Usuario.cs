@@ -1,9 +1,10 @@
-﻿using Service.Enums;
-using Service.Interfaces;
+﻿
+
+using Service.Enums;
 
 namespace Service.Models.InstitutoApp
 {
-    public class Usuario : IEntityIdNombre
+    public class Usuario 
     {
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;

@@ -1,0 +1,144 @@
+.search-wrapper {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.search-card {
+    transition: all 0.3s ease;
+}
+
+.search-card:hover {
+    transform: translateY(-2px);
+}
+
+.book-card {
+    transition: all 0.3s ease;
+    border: none !important;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.book-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+.book-icon {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e9ecef;
+    border-radius: 12px;
+    margin-right: 1rem;
+}
+
+.book-title {
+    color: #1a73e8;
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.book-details p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.book-description {
+    font-size: 0.9rem;
+    color: #6c757d;
+    line-height: 1.5;
+}
+
+.input-group-text {
+    border: none;
+    background-color: transparent;
+}
+
+.form-control {
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 0.2rem rgba(26,115,232,0.25);
+}
+
+.btn-primary {
+    background-color: #1a73e8;
+    border-color: #1a73e8;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #1557b0;
+    border-color: #1557b0;
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+    color: #1a73e8;
+    border-color: #1a73e8;
+}
+
+.btn-outline-primary:hover {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.results-card {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.results-card .card-header {
+    background: transparent;
+    border-bottom: none;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mejoras en los checkboxes */
+.form-check-input:checked {
+    background-color: #1a73e8;
+    border-color: #1a73e8;
+}
+
+/* Estilo para el spinner */
+.spinner-border {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+/* Mejoras en los botones de acción */
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+
+/* Estilos para el mensaje sin resultados */
+.bi-emoji-frown {
+    color: #ffc107;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .book-icon {
+        font-size: 2rem;
+        width: 50px;
+        height: 50px;
+    }
+
+    .book-title {
+        font-size: 1.1rem;
+    }
+
+    .btn-lg {
+        padding: 0.5rem 1rem;
+    }
+}

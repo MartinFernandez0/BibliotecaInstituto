@@ -1,10 +1,9 @@
-using Service.Interfaces;
-using Service.Models.InstitutoApp;
+
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Service.Models.InstitutoApp
 {
-    public class Alumno : IEntityWithId
+    public class Alumno 
     {
         public int Id { get; set; }
         public string ApellidoNombre { get; set; } = string.Empty;

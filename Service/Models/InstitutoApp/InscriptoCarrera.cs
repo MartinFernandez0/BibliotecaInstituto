@@ -1,8 +1,8 @@
-﻿using Service.Interfaces;
+﻿
 
 namespace Service.Models.InstitutoApp
 {
-    public class InscriptoCarrera : IEntityWithId
+    public class InscriptoCarrera 
     {
         public int Id { get; set; }
         public int? AlumnoId { get; set; }
