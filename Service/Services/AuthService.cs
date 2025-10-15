@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Service.DTOs;
 using Service.Interfaces;
+using Service.Models;
 using Service.Utils;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,6 @@ namespace Service.Services
     {
         public AuthService()
         {
-
         }
 
         public async Task<bool> CreateUserWithEmailAndPasswordAsync(string email, string password, string nombre)
@@ -30,30 +30,41 @@ namespace Service.Services
             try
             {
                 var UrlApi = Properties.Resources.UrlApi;
-                var endpointAuth = ApiEndpoints.GetEndpoint("Login");
                 var client = new HttpClient();
-                var newUser = new RegisterDTO{ Email = email, Password = password, Nombre = nombre };
-                var response = await client.PostAsJsonAsync($"{UrlApi}{endpointAuth}/register/", newUser);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsStringAsync();
-                    GenericService<object>.jwtToken = result;
-                    return true;
-                }
-                else
+
+                // Primero, registrar en Firebase a través del endpoint auth
+                var authEndpoint = ApiEndpoints.GetEndpoint("Login");
+                var registerRequest = new RegisterDTO { Email = email, Password = password, Nombre = nombre };
+                var authResponse = await client.PostAsJsonAsync($"{UrlApi}{authEndpoint}/register/", registerRequest);
+                
+                if (!authResponse.IsSuccessStatusCode)
                 {
                     return false;
                 }
+
+                var authResult = await authResponse.Content.ReadAsStringAsync();
+                GenericService<object>.jwtToken = authResult;
+
+                // Luego, crear el usuario en nuestra base de datos
+                var usuariosEndpoint = ApiEndpoints.GetEndpoint("Usuario");
+                var newUser = new Usuario
+                {
+                    Nombre = nombre,
+                    Email = email,
+                    Password = password,
+                    TipoRol = Service.Enums.TipoRolEnum.Alumno,
+                    FechaRegistracion = DateTime.Now,
+                    Dni = "00000000"
+                };
+
+                var dbResponse = await client.PostAsJsonAsync($"{UrlApi}{usuariosEndpoint}", newUser);
+                return dbResponse.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                throw new Exception("Error al crear usuario" + ex.Message);
+                throw new Exception("Error al crear usuario: " + ex.Message);
             }
-
         }
-
-        //si no recibo el objeto IConfiguration en el constructor, creo un constructor vacio que instancie uno y lea el archivo appsettings.json
-
 
         public async Task<string?> Login(LoginDTO? login)
         {
@@ -70,7 +81,6 @@ namespace Service.Services
                 if(response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadAsStringAsync();
-                     
                     GenericService<object>.jwtToken = result;   
                     return null;
                 }
@@ -85,11 +95,8 @@ namespace Service.Services
             {
                 throw new Exception("Error al loguearse->: " + ex.Message);
             }
-
-
-
-
         }
+
         public async Task<bool> ResetPassword(LoginDTO? login)
         {
             if (login == null)
@@ -115,10 +122,6 @@ namespace Service.Services
             {
                 throw new Exception("Error al resetear el password->: " + ex.Message);
             }
-
-
-
-
         }
     }
 }

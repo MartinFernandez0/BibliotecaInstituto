@@ -24,19 +24,19 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios([FromQuery] string filtro = "")
         {
-            return await _context.Usuarios.AsNoTracking().Where(u => u.Nombre.Contains(filtro)).ToListAsync();
+            return await _context.Usuario.AsNoTracking().Where(u => u.Nombre.Contains(filtro)).ToListAsync();
         }
 
         [HttpGet("deleteds")]
         public async Task<ActionResult<IEnumerable<Usuario>>> GetDeletedsUsuarios([FromQuery] string filtro = "")
         {
-            return await _context.Usuarios.AsNoTracking().IgnoreQueryFilters().Where(u => u.IsDeleted).ToListAsync();
+            return await _context.Usuario.AsNoTracking().IgnoreQueryFilters().Where(u => u.IsDeleted).ToListAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Usuario>> GetUsuario(int id)
         {
-            var usuario = await _context.Usuarios.AsNoTracking().FirstOrDefaultAsync(u => u.Id.Equals(id));
+            var usuario = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(u => u.Id.Equals(id));
             if (usuario == null)
             {
                 return NotFound();
@@ -49,9 +49,9 @@ namespace Backend.Controllers
         {
             if (string.IsNullOrEmpty(email))
             {
-                return BadRequest("Ël parametro email es obligatorio.");
+                return BadRequest("El parametro email es obligatorio.");
             }
-            var usuario = await _context.Usuarios.AsNoTracking().FirstOrDefaultAsync(u => u.Email.Equals(email));
+            var usuario = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(u => u.Email.Equals(email));
             if (usuario == null)
             {
                 return NotFound();
@@ -86,9 +86,16 @@ namespace Backend.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult<Usuario>> PostUsuario(Usuario usuario)
         {
-            _context.Usuarios.Add(usuario);
+            // Verificar si ya existe un usuario con ese email
+            if (await _context.Usuario.AnyAsync(u => u.Email == usuario.Email))
+            {
+                return Conflict("Ya existe un usuario con ese email");
+            }
+
+            _context.Usuario.Add(usuario);
             await _context.SaveChangesAsync();
             return CreatedAtAction("GetUsuario", new { id = usuario.Id }, usuario);
         }
@@ -96,13 +103,13 @@ namespace Backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsuario(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario = await _context.Usuario.FindAsync(id);
             if (usuario == null)
             {
                 return NotFound();
             }
             usuario.IsDeleted = true;
-            _context.Usuarios.Update(usuario);
+            _context.Usuario.Update(usuario);
             await _context.SaveChangesAsync();
             return NoContent();
         }
@@ -110,20 +117,20 @@ namespace Backend.Controllers
         [HttpPut("Restore/{id}")]
         public async Task<IActionResult> RestoreUsuario(int id)
         {
-            var usuario = await _context.Usuarios.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id.Equals(id));
+            var usuario = await _context.Usuario.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id.Equals(id));
             if (usuario == null)
             {
                 return NotFound();
             }
             usuario.IsDeleted = false;
-            _context.Usuarios.Update(usuario);
+            _context.Usuario.Update(usuario);
             await _context.SaveChangesAsync();
             return NoContent();
         }
 
         private bool UsuarioExists(int id)
         {
-            return _context.Usuarios.Any(e => e.Id == id);
+            return _context.Usuario.Any(e => e.Id == id);
         }
     }
 }

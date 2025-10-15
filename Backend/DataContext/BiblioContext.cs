@@ -13,7 +13,7 @@ namespace Backend.DataContext
         public virtual DbSet<LibroAutor> LibroAutores { get; set; }
         public virtual DbSet<LibroGenero> LibroGeneros { get; set; }
         public virtual DbSet<UsuarioCarrera> UsuarioCarreras { get; set; }
-        public virtual DbSet<Usuario> Usuarios { get; set; }
+        public virtual DbSet<Usuario> Usuario { get; set; }  
         public virtual DbSet<Prestamo> Prestamos { get; set; }
         public virtual DbSet<Carrera> Carreras { get; set; }
         public virtual DbSet<Ejemplar> Ejemplares { get; set; }

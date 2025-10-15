@@ -57,16 +57,16 @@ namespace Service.Services
             // Si no se definió el token, se lanza una excepción
             
                 throw new InvalidOperationException("El token JWT no está disponible para la autorización.");
-            
-
-
-
-
         }
 
         public async Task<T?> AddAsync(T? entity)
         {
-            SetAuthorizationHeader();
+            // Si es un Usuario y el endpoint es "usuarios", no requiere autorización para el registro
+            if (!(typeof(T).Name == "Usuario" && _endpoint == "usuarios"))
+            {
+                SetAuthorizationHeader();
+            }
+
             var response = await _httpClient.PostAsJsonAsync(_endpoint, entity);
             var content = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
