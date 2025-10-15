@@ -14,5 +14,6 @@ namespace Service.Models
         public int CarreraId { get; set; }
         public Carrera? Carrera { get; set; }
         public bool IsDeleted { get; set; } = false;
+
     }
 }

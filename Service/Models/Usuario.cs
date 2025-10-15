@@ -26,6 +26,6 @@ namespace Service.Models
         public string Telefono { get; set; } = string.Empty;
         public string Observacion { get; set; } = string.Empty;
         public bool IsDeleted { get; set; } = false;
+
     }
 }
-

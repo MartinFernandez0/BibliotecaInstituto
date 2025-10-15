@@ -8,5 +8,10 @@ namespace Service.Models
         [Required]
         public string Nombre { get; set; }
         public bool IsDeleted { get; set; } = false;
+
+        public override string ToString()
+        {
+            return Nombre;
+        }
     }
 }

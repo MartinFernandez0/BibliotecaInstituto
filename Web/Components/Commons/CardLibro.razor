@@ -1,0 +1,26 @@
+﻿<div class="card shadow rounded-4 mb-3 border border-info">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-auto d-flex align-items-center">
+                <span style="font-size: 2.5rem;">📚</span>
+            </div>
+            <div class="col">
+                <div class="fw-bold fs-5" style="color: #274472;">@libro.Titulo</div>
+                <div class="mb-1 text-secondary"><span>🏢</span> Editorial: @libro.Editorial?.Nombre</div>
+                <div class="mb-1 text-secondary"><span>📅</span> Año: @libro.AnioPublicacion</div>
+                <div class="mb-1 text-secondary"><span>📄</span> Páginas: @libro.Paginas</div>
+                <div class="mb-1 text-muted">@libro.Descripcion</div>
+                <div class="mb-1 text-muted">@libro.Autores</div>
+                <div class="mb-1 text-muted">@libro.Generos</div>
+            </div>
+            <div class="col-auto d-flex align-items-center">
+                <button class="btn btn-info text-dark fw-bold" style="width:60px; height:60px; white-space:pre-line;">📖&#10;Ver</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code{
+    [Parameter]
+    public Libro libro { get; set; } = new Libro();
+}

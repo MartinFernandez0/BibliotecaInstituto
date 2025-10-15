@@ -28,8 +28,8 @@ namespace Backend.Controllers
         {
             return await _context.Libros
                 .Include(l => l.Editorial)
-                .Include(l => l.LibroAutores).ThenInclude(la => la.Autor)
-                .Include(l => l.LibroGeneros).ThenInclude(lg => lg.Genero)
+                .Include(l => l.LibrosAutores).ThenInclude(la => la.Autor)
+                .Include(l => l.LibrosGeneros).ThenInclude(lg => lg.Genero)
                 .AsNoTracking()
                 .Where(l => l.Titulo.Contains(filtro))
                 .ToListAsync();
@@ -41,8 +41,8 @@ namespace Backend.Controllers
         {
             var query = _context.Libros
                 .Include(l => l.Editorial)
-                .Include(l => l.LibroAutores).ThenInclude(la => la.Autor)
-                .Include(l => l.LibroGeneros).ThenInclude(lg => lg.Genero)
+                .Include(l => l.LibrosAutores).ThenInclude(la => la.Autor)
+                .Include(l => l.LibrosGeneros).ThenInclude(lg => lg.Genero)
                 .AsNoTracking()
                 .Where(l => !l.IsDeleted);
 
@@ -53,8 +53,8 @@ namespace Backend.Controllers
                 query = query.Where(l =>
                     (filter.ForTitulo && l.Titulo.ToLower().Contains(search)) ||
                     (filter.ForEditorial && l.Editorial != null && l.Editorial.Nombre.ToLower().Contains(search)) ||
-                    (filter.ForAutor && l.LibroAutores.Any(la => la.Autor != null && la.Autor.Nombre.ToLower().Contains(search))) ||
-                    (filter.ForGenero && l.LibroGeneros.Any(lg => lg.Genero != null && lg.Genero.Nombre.ToLower().Contains(search)))
+                    (filter.ForAutor && l.LibrosAutores.Any(la => la.Autor != null && la.Autor.Nombre.ToLower().Contains(search))) ||
+                    (filter.ForGenero && l.LibrosGeneros.Any(lg => lg.Genero != null && lg.Genero.Nombre.ToLower().Contains(search)))
                 );
             }
 

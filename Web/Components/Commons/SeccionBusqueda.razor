@@ -1,0 +1,94 @@
+﻿<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow rounded-4 border border-light">
+            <div class="card-body">
+                <div class="mb-3 fw-bold" style="color: #274472;">¿Qué libro estás buscando?</div>
+                <div class="mb-3">
+                    <input class="form-control form-control-lg rounded-3 border-primary"
+                           placeholder="Buscar por título, autor, editorial..."
+                           @bind="SearchText" />
+                </div>
+                <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-primary" @onclick="HandleBuscar">🔍 Buscar</button>
+                    <button class="btn btn-outline-primary" @onclick="ToggleFiltros">⚙️ Filtros de búsqueda</button>
+                </div>
+                @if (MostrarFiltros)
+                {
+                    <div class="card p-3 mb-3" style="background-color: AliceBlue; border-color: LightBlue;">
+                        <div class="fw-bold mb-2" style="color: #274472;">🔎 Buscar en:</div>
+                        <div class="row mb-2">
+                            <div class="col-6 d-flex align-items-center">
+                                <input type="checkbox" class="form-check-input me-2" @bind="FiltrarPorTitulo" />
+                                <label class="form-check-label">📖 Título</label>
+                            </div>
+                            <div class="col-6 d-flex align-items-center">
+                                <input type="checkbox" class="form-check-input me-2" @bind="FiltrarPorAutor" />
+                                <label class="form-check-label">✍️ Autor</label>
+                            </div>
+                            <div class="col-6 d-flex align-items-center">
+                                <input type="checkbox" class="form-check-input me-2" @bind="FiltrarPorEditorial" />
+                                <label class="form-check-label">🏢 Editorial</label>
+                            </div>
+                            <div class="col-6 d-flex align-items-center">
+                                <input type="checkbox" class="form-check-input me-2" @bind="FiltrarPorGenero" />
+                                <label class="form-check-label">🎭 Género</label>
+                            </div>
+                        </div>
+                        <button class="btn btn-warning text-white mt-2" @onclick="LimpiarBusqueda">🗑️ Limpiar búsqueda</button>
+                    </div>
+                }
+                @if (IsBusy)
+                {
+                    <div class="d-flex align-items-center justify-content-center gap-2 mt-2">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <span class="text-primary">Buscando libros...</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public List<Libro>? Libros { get; set; } = new();
+    [Parameter]
+    public EventCallback<FilterLibroDTO> OnBuscar { get; set; }
+
+    // Estado de búsqueda y filtros
+    string SearchText { get; set; } = "";
+    bool MostrarFiltros { get; set; } = false;
+    bool FiltrarPorTitulo { get; set; } = true;
+    bool FiltrarPorAutor { get; set; } = false;
+    bool FiltrarPorEditorial { get; set; } = false;
+    bool FiltrarPorGenero { get; set; } = false;
+    bool IsBusy { get; set; } = false;
+
+
+    void ToggleFiltros() => MostrarFiltros = !MostrarFiltros;
+
+    async Task LimpiarBusqueda()
+    {
+        SearchText = "";
+        FiltrarPorTitulo = true;
+        FiltrarPorAutor = false;
+        FiltrarPorEditorial = false;
+        FiltrarPorGenero = false;
+        await HandleBuscar();
+    }
+
+    private async Task HandleBuscar()
+    {
+        FilterLibroDTO filterDTO = new()
+        {
+            SearchText = SearchText,
+            ForTitulo = FiltrarPorTitulo,
+            ForAutor = FiltrarPorAutor,
+            ForEditorial = FiltrarPorEditorial,
+            ForGenero = FiltrarPorGenero
+        };
+        IsBusy = true;
+        await OnBuscar.InvokeAsync(filterDTO);
+        IsBusy = false;
+    }
+}

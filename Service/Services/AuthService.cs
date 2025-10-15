@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Firebase.Auth;
+using Microsoft.Extensions.Configuration;
 using Service.DTOs;
 using Service.Interfaces;
 using Service.Utils;
@@ -15,71 +16,11 @@ namespace Service.Services
 {
     public class AuthService : IAuthService
     {
-        public AuthService() { }
-        protected void SetAuthorizationHeader(HttpClient _httpClient)
+        public AuthService()
         {
-            if (!string.IsNullOrEmpty(GenericService<object>.jwtToken))
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GenericService<object>.jwtToken);
-            else
-                throw new ArgumentException("Token no definido.", nameof(GenericService<object>.jwtToken));
-        }
-        public async Task<bool> Login(LoginDTO? login)
-        {
-            if (login == null)
-            {
-                throw new ArgumentException("El objeto login no llego.");
-            }
-            try
-            {
-                var UrlApi = Properties.Resources.UrlApi;
-                var endpointAuth = ApiEndpoints.GetEndpoint("Login");
-                var client = new HttpClient();
-                var response = await client.PostAsJsonAsync($"{UrlApi}{endpointAuth}/login/", login);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsStringAsync();
 
-                    GenericService<object>.jwtToken = result;
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error en el login" + ex.Message);
-            }
         }
-        public async Task<bool> ResetPassword(LoginDTO? login)
-        {
-            if (login == null)
-            {
-                throw new ArgumentException("El objeto login no llego.");
-            }
-            try
-            {
-                var UrlApi = Properties.Resources.UrlApi;
-                var endpointAuth = ApiEndpoints.GetEndpoint("Login");
-                var client = new HttpClient();
-                var response = await client.PostAsJsonAsync($"{UrlApi}{endpointAuth}/resetpassword/", login);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsStringAsync();
 
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error al resetear" + ex.Message);
-            }
-        }
         public async Task<bool> CreateUserWithEmailAndPasswordAsync(string email, string password, string nombre)
         {
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(nombre))
@@ -91,11 +32,12 @@ namespace Service.Services
                 var UrlApi = Properties.Resources.UrlApi;
                 var endpointAuth = ApiEndpoints.GetEndpoint("Login");
                 var client = new HttpClient();
-                var newUser = new RegisterDTO { Email = email, Password = password, Nombre = nombre };
+                var newUser = new RegisterDTO{ Email = email, Password = password, Nombre = nombre };
                 var response = await client.PostAsJsonAsync($"{UrlApi}{endpointAuth}/register/", newUser);
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadAsStringAsync();
+                    GenericService<object>.jwtToken = result;
                     return true;
                 }
                 else
@@ -107,6 +49,76 @@ namespace Service.Services
             {
                 throw new Exception("Error al crear usuario" + ex.Message);
             }
+
+        }
+
+        //si no recibo el objeto IConfiguration en el constructor, creo un constructor vacio que instancie uno y lea el archivo appsettings.json
+
+
+        public async Task<string?> Login(LoginDTO? login)
+        {
+            if (login==null)
+            {
+                throw new ArgumentException("El objeto login no llego.");
+            }
+            try
+            {
+                var urlApi = Properties.Resources.UrlApi;
+                var endpointAuth = ApiEndpoints.GetEndpoint("Login");
+                var client = new HttpClient();
+                var response = await client.PostAsJsonAsync($"{urlApi}{endpointAuth}/login/",login);
+                if(response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                     
+                    GenericService<object>.jwtToken = result;   
+                    return null;
+                }
+                else
+                {
+                    //si no es exitoso, devuelvo el mensaje de error
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return errorContent;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al loguearse->: " + ex.Message);
+            }
+
+
+
+
+        }
+        public async Task<bool> ResetPassword(LoginDTO? login)
+        {
+            if (login == null)
+            {
+                throw new ArgumentException("El objeto login no llego.");
+            }
+            try
+            {
+                var urlApi = Properties.Resources.UrlApi;
+                var endpointAuth = ApiEndpoints.GetEndpoint("Login");
+                var client = new HttpClient();
+                var response = await client.PostAsJsonAsync($"{urlApi}{endpointAuth}/resetpassword/", login);
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al resetear el password->: " + ex.Message);
+            }
+
+
+
+
         }
     }
 }

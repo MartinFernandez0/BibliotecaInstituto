@@ -9,6 +9,6 @@ namespace Service.Interfaces
 {
     public interface IInstitutoAppService
     {
-        Task<Usuario> GetUsuarioByEmail(string textPrompt);
+        Task<Usuario?> GetUsuarioByEmailAsync(string email);
     }
 }

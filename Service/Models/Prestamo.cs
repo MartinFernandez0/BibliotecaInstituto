@@ -17,7 +17,9 @@ namespace Service.Models
         public DateTime? FechaDevolucion { get; set; }
         public bool IsDeleted { get; set; } = false;
 
-        public override string ToString() => $"{Ejemplar?.Libro?.Titulo} ({FechaPrestamo.ToShortDateString()} - {FechaDevolucion?.ToShortDateString()})";
-
+        public override string ToString()
+        {
+            return $"{Ejemplar?.Libro?.Titulo} - {FechaPrestamo.ToShortDateString()} - {FechaDevolucion?.ToShortDateString()}";
+        }
     }
 }

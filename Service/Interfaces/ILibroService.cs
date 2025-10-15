@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Service.Interfaces
 {
-    public interface ILibroService : IGenericService<Libro>
+    public interface ILibroService: IGenericService<Libro> 
     {
         public Task<List<Libro>?> GetWithFilterAsync(FilterLibroDTO filter);
     }

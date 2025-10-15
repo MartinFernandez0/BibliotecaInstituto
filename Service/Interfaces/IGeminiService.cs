@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Service.Interfaces
 {
-    public interface IGenimiService
+    public interface IGeminiService
     {
         Task<string?> GetPrompt(string textPrompt);
     }

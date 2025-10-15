@@ -1,5 +1,6 @@
 ﻿@inject FirebaseAuthService _firebaseAuthService
 @inject NavigationManager _navigationManager
+@inject IUsuarioService _usuarioService
 @rendermode InteractiveServer
 
 <div class="top-row ps-3 navbar navbar-dark">
@@ -24,6 +25,9 @@
                 <NavLink class="nav-link" href="miembros/buscar-libros">
                     <span class="bi bi-search" aria-hidden="true"></span> Buscar Libros
                 </NavLink>
+
+                <p class="text-white mt-2">Hola, @_usuarioLogueado?.Nombre</p>
+
             </div>
         }
 
@@ -36,6 +40,7 @@
 </div>
 @code {
     FirebaseUser _userLogued;
+    Usuario? _usuarioLogueado;
     bool _isLogued = false;
     private string textBtnLogin => _isLogued ? "Cerrar sesión" : "Iniciar sesión";
 
@@ -60,11 +65,13 @@
 
     private async void LoginChanged()
     {
-        await _firebaseAuthService.IsUserAuthenticated();
+
         if (_firebaseAuthService.CurrentUser != null)
         {
             _userLogued = _firebaseAuthService.CurrentUser;
             _isLogued = true;
+            if (_usuarioLogueado == null) await CargarUsuarioAsync();
+
         }
         else
         {
@@ -73,5 +80,20 @@
             _navigationManager.NavigateTo("/login");
         }
         StateHasChanged();
+    }
+
+    private async Task CargarUsuarioAsync()
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(_userLogued?.Email))
+            {
+                _usuarioLogueado = await _usuarioService.GetByEmailAsync(_userLogued.Email);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex);
+        }
     }
 }
