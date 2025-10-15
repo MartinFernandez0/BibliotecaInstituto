@@ -1,27 +1,22 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Service.DTOs;
 using Service.Models;
 using Service.Services;
-using System.Text;
-using System.Text.Json;
 
 namespace BiblioTestProject
 {
     public class UnitTestGenericService
     {
-        // Test GetAllAsync method of GenericService
+        //test GetAllAsync method of GenericService
         [Fact]
-        public async Task Test_GetAlAsync_ReturnListOfEntities()
+        public async Task Test_GetAllAsync_ReturnsListOfEntities()
         {
-            //Arrange
-
+            // Arrange
             await LoginTest();
-            //Act 
-            var service = new GenericService<Libro>();
+            var service= new GenericService<Libro>();
+            // Act
             var result = await service.GetAllAsync();
-
-
-            //Assert
+            // Assert
             Assert.NotNull(result);
             Assert.IsType<List<Libro>>(result);
             Assert.True(result.Count > 0);
@@ -29,39 +24,32 @@ namespace BiblioTestProject
 
         private async Task LoginTest()
         {
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .Build();
-
             var serviceAuth = new AuthService();
-            var token = await serviceAuth.Login(new LoginDTO
-            {
-                Username = "sofiimellano@gmail.com",
-                Password = "123457"
-            });
+            var token = await serviceAuth.Login(new LoginDTO { Username = "martinexefe@gmail.com", Password = "123456" });
+            Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>Token: {token}");
         }
 
+        //test GetAllAsync method of GenericService
         [Fact]
-        public async Task Test_GetAlAsync_WhitFilter()
+        public async Task Test_GetAllAsync_WithFilter()
         {
+            // Arrange
             await LoginTest();
-            //Arrange
             var service = new GenericService<Libro>();
-
-            //Act 
-            var result = await service.GetAllAsync("Casa");
-
-            //Assert
+            // Act
+            var result = await service.GetAllAsync("catedral");
+            // Assert
             Assert.NotNull(result);
             Assert.IsType<List<Libro>>(result);
             Assert.True(result.Count == 1);
-            Assert.Equal("La casa de los esp�ritus", result[0].Titulo);
+            Assert.Equal("Conversación en La Catedral", result[0].Titulo);
         }
 
+        //test AddAsync method of GenericService
         [Fact]
-        public async Task Test_AddAsync_ReturnEntity()
+        public async Task Test_AddAsync_AddsEntity()
         {
-            //Arrange
+            // Arrange
             await LoginTest();
             var service = new GenericService<Libro>();
             var newLibro = new Libro
@@ -74,38 +62,39 @@ namespace BiblioTestProject
                 Portada = "portada.jpg",
                 Sinopsis = "Sinopsis del libro de prueba"
             };
-            //Act 
+            // Act
             var result = await service.AddAsync(newLibro);
-            //Assert
+            // Assert
             Assert.NotNull(result);
             Assert.IsType<Libro>(result);
             Assert.Equal("Test Libro", result.Titulo);
         }
-
+        //test DeleteAsync method of GenericService
         [Fact]
-        public async Task Test_DeleteAsync_ReturnTrue()
+        public async Task Test_DeleteAsync_DeletesEntity()
         {
-            //Arrange
+            // Arrange
             await LoginTest();
             var service = new GenericService<Libro>();
+            // First, add a new entity to ensure there is something to delete
             var newLibro = new Libro
             {
-                Titulo = "Test Libro to Delete",
-                Descripcion = "Descripcion del libro de prueba",
+                Titulo = "Libro to Delete",
+                Descripcion = "Descripcion del libro a eliminar",
                 EditorialId = 1,
-                Paginas = 100,
-                AnioPublicacion = 2024,
-                Portada = "portada.jpg",
-                Sinopsis = "Sinopsis del libro de prueba"
+                Paginas = 150,
+                AnioPublicacion = 2023,
+                Portada = "portada_delete.jpg",
+                Sinopsis = "Sinopsis del libro a eliminar"
             };
             var addedLibro = await service.AddAsync(newLibro);
             Assert.NotNull(addedLibro);
-            //Act 
+            // Act
             var result = await service.DeleteAsync(addedLibro.Id);
-            //Assert
+            // Assert
             Assert.True(result);
         }
-
+        // test deleteds method of GenericService
         [Fact]
         public async Task Test_GetAllDeletedsAsync_ReturnsListOfDeletedEntities()
         {
@@ -119,51 +108,52 @@ namespace BiblioTestProject
             Assert.IsType<List<Libro>>(result);
             Assert.True(result.Count >= 0); // Assuming there could be zero or more deleted entities
         }
-
+        // update test method of GenericService
         [Fact]
-        public async Task Test_UpdateAsync_ReturnsUpdatedEntity()
+        public async Task Test_UpdateAsync_UpdatesEntity()
         {
             // Arrange
             await LoginTest();
             var service = new GenericService<Libro>();
+            // First, add a new entity to ensure there is something to update
             var newLibro = new Libro
             {
-                Titulo = "Test Libro to Update",
-                Descripcion = "Descripcion del libro de prueba",
+                Titulo = "Libro to Update",
+                Descripcion = "Descripcion del libro a actualizar",
                 EditorialId = 1,
-                Paginas = 100,
-                AnioPublicacion = 2024,
-                Portada = "portada.jpg",
-                Sinopsis = "Sinopsis del libro de prueba"
+                Paginas = 200,
+                AnioPublicacion = 2022,
+                Portada = "portada_update.jpg",
+                Sinopsis = "Sinopsis del libro a actualizar"
             };
             var addedLibro = await service.AddAsync(newLibro);
             Assert.NotNull(addedLibro);
             // Modify some properties
-            addedLibro.Titulo = "Updated Test Libro";
-            addedLibro.Paginas = 150;
+            addedLibro.Titulo = "Updated Libro Title";
+            addedLibro.Paginas = 250;
             // Act
             var result = await service.UpdateAsync(addedLibro);
             // Assert
             Assert.NotNull(result);
             Assert.True(result);
-
         }
-
+        //test GetByIdAsync method of GenericService
         [Fact]
         public async Task Test_GetByIdAsync_ReturnsEntity()
         {
             // Arrange
             await LoginTest();
             var service = new GenericService<Libro>();
+            // First, add a new entity to ensure there is something to get by ID
             var newLibro = new Libro
             {
-                Titulo = "Test Libro to GetById",
-                Descripcion = "Descripcion del libro de prueba",
+                Titulo = "Libro to GetById",
+                Descripcion = "Descripcion del libro a obtener por ID",
                 EditorialId = 1,
-                Paginas = 100,
-                AnioPublicacion = 2024,
-                Portada = "portada.jpg",
-                Sinopsis = "Sinopsis del libro de prueba"
+                Paginas = 300,
+                AnioPublicacion = 2021,
+                Portada = "portada_getbyid.jpg",
+                Sinopsis = "Sinopsis del libro a obtener por ID"
             };
             var addedLibro = await service.AddAsync(newLibro);
             Assert.NotNull(addedLibro);
@@ -172,29 +162,30 @@ namespace BiblioTestProject
             // Assert
             Assert.NotNull(result);
             Assert.IsType<Libro>(result);
-            Assert.Equal(addedLibro.Id, result.Id);
-
+            Assert.Equal("Libro to GetById", result.Titulo);
         }
 
+        //restore deleted entity test method of GenericService
         [Fact]
-        //restore
-        public async Task Test_RestoreAsync_ReturnsTrue()
+        public async Task Test_RestoreDeletedAsync_RestoresEntity()
         {
             // Arrange
             await LoginTest();
             var service = new GenericService<Libro>();
+            // First, add a new entity to ensure there is something to delete and then restore
             var newLibro = new Libro
             {
-                Titulo = "Test Libro to Restore",
-                Descripcion = "Descripcion del libro de prueba",
+                Titulo = "Libro to Restore",
+                Descripcion = "Descripcion del libro a restaurar",
                 EditorialId = 1,
-                Paginas = 100,
-                AnioPublicacion = 2024,
-                Portada = "portada.jpg",
-                Sinopsis = "Sinopsis del libro de prueba"
+                Paginas = 350,
+                AnioPublicacion = 2020,
+                Portada = "portada_restore.jpg",
+                Sinopsis = "Sinopsis del libro a restaurar"
             };
             var addedLibro = await service.AddAsync(newLibro);
             Assert.NotNull(addedLibro);
+            // Delete the entity
             var deleteResult = await service.DeleteAsync(addedLibro.Id);
             Assert.True(deleteResult);
             // Act

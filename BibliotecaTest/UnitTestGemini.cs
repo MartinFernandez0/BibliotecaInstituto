@@ -1,9 +1,15 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Service.DTOs;
 using Service.Services;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Net.Http.Headers;
+using System.Net.Http;
+using System.Net;
+using System.IO;
+using Xunit;
 
 namespace BiblioTestProject
 {
@@ -12,30 +18,31 @@ namespace BiblioTestProject
         [Fact]
         public async Task TestObtenerResumenLibroIA()
         {
+            //leemos la clave de la api desde appsettings.json
             await LoginTest();
-            //leemos la api key desde appsettings.json
+
             var configuration = new ConfigurationBuilder()
-                  .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                  .AddEnvironmentVariables()
-                  .Build();
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
 
             var apiKey = configuration["ApiKeyGemini"];
             var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key= " + apiKey;
 
-            var prompt = $"Me puedes dar un resumen de 100 palabras como máximo del libro Sin Red: Nadal, Federer y la historia detrás del duelo que cambió el tenis";
+            var prompt = $"Me puedes dar un resumen de 100 palabras como máximo de libro Mi Planta de Naranja lima";
 
             var payload = new
             {
                 contents = new[]
                 {
-                    new
+                new
+                {
+                    parts = new[]
                     {
-                        parts = new[]
-                        {
-                            new { text = prompt }
-                        }
+                        new { text = prompt }
                     }
                 }
+            }
             };
 
             var json = JsonSerializer.Serialize(payload);
@@ -54,24 +61,25 @@ namespace BiblioTestProject
 
             Console.WriteLine($"Respuesta de IA: {texto}");
             Assert.True(response.IsSuccessStatusCode);
+
+
+
+
         }
+
 
         private async Task LoginTest()
         {
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .Build();
-
             var serviceAuth = new AuthService();
-            var token = await serviceAuth.Login(new LoginDTO
-            {
-                Username = "sofiimellano@gmail.com",
-                Password = "123456"
-            });
+            var token = await serviceAuth.Login(new LoginDTO { Username = "martinexefe@gmail.com", Password = "123456" });
+            Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>Token: {token}");
+            
         }
 
+
+
         [Fact]
-        public async Task TestServicioGemini()
+        public async Task TestServiceGeminiGetPrompt()
         {
             await LoginTest();
             //leemos la api key desde appsettings.json
@@ -84,6 +92,8 @@ namespace BiblioTestProject
             var resultado = await servicio.GetPrompt(prompt);
             Console.WriteLine($"Respuesta de IA desde servicio: {resultado}");
             Assert.NotNull(resultado);
+
+
         }
 
         [Fact]
@@ -97,7 +107,7 @@ namespace BiblioTestProject
             Assert.True(File.Exists(imagePath), $"No se encontró la imagen de prueba: {imagePath}");
 
             using var client = new HttpClient();
-            client.BaseAddress = new Uri("https://localhost:7000/"); // Cambia el puerto si tu backend usa otro
+            //client.BaseAddress = new Uri("https://localhost:7000/"); // Cambia el puerto si tu backend usa otro
 
             // Si necesitas token:
             // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -109,8 +119,12 @@ namespace BiblioTestProject
             form.Add(imageContent, "Image", "portada_test.jpg");
 
             // Puedes agregar otros campos si BookCoverExtractionRequestDTO los requiere
+            if (!string.IsNullOrEmpty(GenericService<object>.jwtToken))
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GenericService<object>.jwtToken);
+            else
+                throw new ArgumentException("Error Token no definido", nameof(GenericService<object>.jwtToken));
 
-            var response = await client.PostAsync("api/gemini/ocr-portada", form);
+            var response = await client.PostAsync("https://localhost:7000/api/gemini/ocr-portada", form);
             var result = await response.Content.ReadAsStringAsync();
 
             Assert.True(response.IsSuccessStatusCode, $"Error en la API: {result}");
