@@ -96,6 +96,8 @@
 
     private async Task Register()
     {
+        if (_isSubmitting) return;
+
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email) ||
             string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(passwordverify))
         {
@@ -111,8 +113,8 @@
         _isSubmitting = true;
         try
         {
-            var result = await firebaseAuthService.createUserWithEmailAndPassword(email, password, name);
-            if (result != null)
+            var userId = await firebaseAuthService.createUserWithEmailAndPassword(email, password, name);
+            if (!string.IsNullOrEmpty(userId))
             {
                 await sweetAlert.FireAsync("Éxito", "Usuario registrado correctamente. Revisa tu correo para verificar la cuenta.", SweetAlertIcon.Success);
                 name = string.Empty;
@@ -125,6 +127,10 @@
             {
                 await sweetAlert.FireAsync("Error", "Error al registrar el usuario", SweetAlertIcon.Error);
             }
+        }
+        catch (Exception ex)
+        {
+            await sweetAlert.FireAsync("Error", "Ocurrió un error durante el registro: " + ex.Message, SweetAlertIcon.Error);
         }
         finally
         {

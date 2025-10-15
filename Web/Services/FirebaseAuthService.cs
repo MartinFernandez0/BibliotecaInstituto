@@ -1,8 +1,10 @@
 ﻿using Firebase.Auth;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.JSInterop;
+using Service.Models;
 using Service.Models.Login;
 using Service.Services;
+using Service.Interfaces;
 
 namespace Web.Services
 {
@@ -11,12 +13,14 @@ namespace Web.Services
         private readonly IJSRuntime _jsRuntime;
         public event Action OnChangeLogin;
         public FirebaseUser CurrentUser { get; set; }
-        private IMemoryCache _memoryCache;
+        private readonly IMemoryCache _memoryCache;
+        private readonly IUsuarioService _usuarioService;
 
-        public FirebaseAuthService(IJSRuntime jsRuntime, IMemoryCache memoryCache)
+        public FirebaseAuthService(IJSRuntime jsRuntime, IMemoryCache memoryCache, IUsuarioService usuarioService)
         {
             _jsRuntime = jsRuntime;
             _memoryCache = memoryCache;
+            _usuarioService = usuarioService;
         }
 
         public async Task<FirebaseUser?> SignInWithEmailPassword(string email, string password, bool rememberPassword)
@@ -33,9 +37,22 @@ namespace Web.Services
 
         public async Task<string> createUserWithEmailAndPassword(string email, string password, string displayName)
         {
+            // Primero crear el usuario en Firebase
             var userId = await _jsRuntime.InvokeAsync<string>("firebaseAuth.createUserWithEmailAndPassword", email, password, displayName);
             if (userId != null)
             {
+                // Luego crear el usuario en la base de datos local
+                var newUser = new Usuario
+                {
+                    Nombre = displayName,
+                    Email = email,
+                    Password = password,
+                    TipoRol = Service.Enums.TipoRolEnum.Alumno,
+                    FechaRegistracion = DateTime.Now,
+                    Dni = "00000000"
+                };
+
+                await _usuarioService.AddAsync(newUser);
                 OnChangeLogin?.Invoke();
             }
             return userId;
@@ -96,11 +113,10 @@ namespace Web.Services
             OnChangeLogin?.Invoke();
             return userFirebase;
         }
-        //recuperación de correo
+        
         public async Task<bool> RecoveryPassword(string email)
         {
             return await _jsRuntime.InvokeAsync<bool>("firebaseAuth.recoveryPassword", email);
         }
-
     }
 }
