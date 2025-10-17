@@ -81,11 +81,11 @@ namespace AppMovil.ViewModels
                     Password = Password
                 });
 
-                if (!response)
-                {
-                    ErrorMessage = "Usuario o Contraseña incorrecto";
-                    return;
-                }
+                //if (!response)
+                //{
+                //    ErrorMessage = "Usuario o Contraseña incorrecto";
+                //    return;
+                //}
 
                 var usuario = await _usuarioService.GetByEmailAsync(username);
                 if (usuario == null)
